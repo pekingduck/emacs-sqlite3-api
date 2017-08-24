@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -g3 -Wall
+CFLAGS = -g3 -Wall -std=c99
 EMACS=$(HOME)/test-emacs/bin/emacs
 
 all: sqlite3-napi-module.so
