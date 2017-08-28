@@ -9,7 +9,6 @@ c_src="""
 #include <sqlite3.h>
 
 int main(int argc, char *argv[]) {
-  printf(\"(require 'sqlite3-napi-module)\\n");
 """
 print(c_src)
 for line in sys.stdin.readlines():
@@ -22,5 +21,5 @@ for line in sys.stdin.readlines():
       print('  printf("(defconst {1} \\"%s\\")\\n", {0});'.format(fields[1], name))
     else:
       print('  printf("(defconst {1} %d)\\n", {0});'.format(fields[1], name))
-print('  printf("(provide \'sqlite3-napi)");')
+print('  printf("(provide \'sqlite3-api-constants)");')
 print("}")

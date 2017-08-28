@@ -1,3 +1,18 @@
+/*
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -31,7 +46,7 @@ static int SQLITE3_LOG_LEVEL_DEBUG = 0;
 static int SQLITE3_LOG_LEVEL_INFO = 1;
 static int SQLITE3_LOG_LEVEL_WARN = 2;
 static int SQLITE3_LOG_LEVEL_ERROR = 3;
-static int sqlite3_napi_log_level;
+static int sqlite3_api_log_level;
 
 int symbol_value_as_int(emacs_env *env,
                         emacs_value sym,
@@ -42,9 +57,17 @@ int symbol_value_as_int(emacs_env *env,
   return defaul;
 }
 
+/* Equivalent to (list a b c) in elisp
+   n is the number of arguments
+   elts, an array of emacs_valuem, are elements of the list
+ */
+emacs_value make_list(emacs_env *env, int n, emacs_value *elts) {
+  return env->funcall(env, SYM(env, "list"), n, elts);
+}
+
 #if 0
 static void message(emacs_env *env, int log_level, const char *fmt, ...) {
-  if (log_level < sqlite3_napi_log_level)
+  if (log_level < sqlite3_api_log_level)
     return;
 
   va_list args;
@@ -71,10 +94,11 @@ static void message(emacs_env *env, int log_level, const char *fmt, ...) {
 }
 #endif
 
+/* Logging function */
 static void message(emacs_env *env, int log_level, const char *fmt, ...) {
   (void)env;
 
-  if (log_level < sqlite3_napi_log_level)
+  if (log_level < sqlite3_api_log_level)
     return;
 
   static const char *LOG_LEVEL_DESC[] = {
@@ -93,10 +117,11 @@ static void message(emacs_env *env, int log_level, const char *fmt, ...) {
   fprintf(stderr, "\n");
 }
 
+/* Equivalent to (signal error data) in elisp */
 void signal_error(emacs_env *env, const char *symbol, const char *msg) {
   emacs_value signal = SYM(env, symbol);
   emacs_value errmsg = env->make_string(env, msg, strlen(msg));
-  env->non_local_exit_signal(env, signal, errmsg);
+  env->non_local_exit_signal(env, signal, make_list(env, 1, &errmsg));
 }
 
 /* Extract and copy string contents from function parameters */
@@ -114,7 +139,7 @@ int extract_string_arg(emacs_env *env, emacs_value arg, char **str) {
   return 0;
 }
 
-/* Create a LISP function callable from within Emacs */
+/* Bind the supplied function to a symbol by calling (fset ....) */
 void bind_func(emacs_env *env, const char *name, ptrdiff_t min,
                ptrdiff_t max,
                emacs_value (*function) (emacs_env *env,
@@ -130,7 +155,8 @@ void bind_func(emacs_env *env, const char *name, ptrdiff_t min,
   env->funcall(env, fset, 2, args);
 }
 
-static void sqlite3_db_gc(void *ptr) {
+/* finalizer for database handle (sqlite3 *) */
+static void sqlite3_dbh_gc(void *ptr) {
   INFO(0, "%s: entered", __func__);
 
   if (ptr) {
@@ -139,6 +165,7 @@ static void sqlite3_db_gc(void *ptr) {
   }
 }
 
+/* finalizer for statement handle (sqlite3_stmt *) */
 static void sqlite3_stmt_gc(void *ptr) {
   INFO(0, "%s: entered", __func__);
 
@@ -151,7 +178,7 @@ static void sqlite3_stmt_gc(void *ptr) {
 /* bind_*() functions:
    Bind SQL parameters after the SQL is prepared (compiled).
 */
-static emacs_value sqlite3_napi_bind_null(
+static emacs_value sqlite3_api_bind_null(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -159,10 +186,6 @@ static emacs_value sqlite3_napi_bind_null(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
-    /* User passed a nil stmt */
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -170,20 +193,15 @@ static emacs_value sqlite3_napi_bind_null(
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
-  /* if (env->non_local_exit_check(env) != emacs_funcall_exit_return) */
-  /*   return SYM(env, "nil"); */
 
   // The column no.
   int col = env->extract_integer(env, args[1]);
   NON_LOCAL_EXIT_CHECK(env);
-  /* if (env->non_local_exit_check(env) != emacs_funcall_exit_return) { */
-  /*   return SYM(env, "nil"); */
-  /* } */
 
   return env->make_integer(env, sqlite3_bind_null(stmt, col));
 }
 
-static emacs_value sqlite3_napi_bind_double(
+static emacs_value sqlite3_api_bind_double(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -191,9 +209,6 @@ static emacs_value sqlite3_napi_bind_double(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -212,7 +227,7 @@ static emacs_value sqlite3_napi_bind_double(
   return env->make_integer(env, sqlite3_bind_double(stmt, col, val));
 }
 
-static emacs_value sqlite3_napi_bind_parameter_count(
+static emacs_value sqlite3_api_bind_parameter_count(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -231,7 +246,7 @@ static emacs_value sqlite3_napi_bind_parameter_count(
   return env->make_integer(env, sqlite3_bind_parameter_count(stmt));
 }
 
-static emacs_value sqlite3_napi_bind_int64(
+static emacs_value sqlite3_api_bind_int64(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -239,9 +254,6 @@ static emacs_value sqlite3_napi_bind_int64(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -258,11 +270,10 @@ static emacs_value sqlite3_napi_bind_int64(
   intmax_t val = env->extract_integer(env, args[2]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  /* DEBUG(env, "%s: col %d, val %d", __func__, col, val); */
   return env->make_integer(env, sqlite3_bind_int64(stmt, col, val));
 }
 
-static emacs_value sqlite3_napi_bind_text(
+static emacs_value sqlite3_api_bind_text(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -270,9 +281,6 @@ static emacs_value sqlite3_napi_bind_text(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -296,7 +304,7 @@ static emacs_value sqlite3_napi_bind_text(
   return env->make_integer(env, rv);
 }
 
-static emacs_value sqlite3_napi_bind_multi(
+static emacs_value sqlite3_api_bind_multi(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -304,9 +312,6 @@ static emacs_value sqlite3_napi_bind_multi(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -345,12 +350,10 @@ static emacs_value sqlite3_napi_bind_multi(
     }
   }
 
-  /* message(env, "bind_text [%s] to col %d", txt, col); */
-
   return env->make_integer(env, rv);
 }
 
-static emacs_value sqlite3_napi_column_name(
+static emacs_value sqlite3_api_column_name(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -358,9 +361,6 @@ static emacs_value sqlite3_napi_column_name(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -377,7 +377,7 @@ static emacs_value sqlite3_napi_column_name(
   return env->make_string(env, name, strlen(name));
 }
 
-static emacs_value sqlite3_napi_column_text(
+static emacs_value sqlite3_api_column_text(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -385,9 +385,6 @@ static emacs_value sqlite3_napi_column_text(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -406,7 +403,7 @@ static emacs_value sqlite3_napi_column_text(
                           size);
 }
 
-static emacs_value sqlite3_napi_column_int64(
+static emacs_value sqlite3_api_column_int64(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -414,9 +411,6 @@ static emacs_value sqlite3_napi_column_int64(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -432,7 +426,7 @@ static emacs_value sqlite3_napi_column_int64(
   return env->make_integer(env, (intmax_t)sqlite3_column_int64(stmt, col));
 }
 
-static emacs_value sqlite3_napi_column_double(
+static emacs_value sqlite3_api_column_double(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -440,9 +434,6 @@ static emacs_value sqlite3_napi_column_double(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -458,7 +449,7 @@ static emacs_value sqlite3_napi_column_double(
   return env->make_float(env, sqlite3_column_double(stmt, col));
 }
 
-static emacs_value sqlite3_napi_column_type(
+static emacs_value sqlite3_api_column_type(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -466,9 +457,6 @@ static emacs_value sqlite3_napi_column_type(
   (void)ptr;
   (void)n;
 
-  // TODO:
-  // should signal an error instead of return SYM(env, "nil")??
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -484,7 +472,7 @@ static emacs_value sqlite3_napi_column_type(
   return env->make_integer(env, sqlite3_column_type(stmt, col));
 }
 
-static emacs_value sqlite3_napi_changes(
+static emacs_value sqlite3_api_changes(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -492,7 +480,6 @@ static emacs_value sqlite3_napi_changes(
   (void)ptr;
   (void)n;
 
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: database handle is nil", __func__);
     return SYM(env, "nil");
@@ -504,7 +491,7 @@ static emacs_value sqlite3_napi_changes(
   return env->make_integer(env, sqlite3_changes(dbh));
 }
 
-static emacs_value sqlite3_napi_step(
+static emacs_value sqlite3_api_step(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -512,7 +499,6 @@ static emacs_value sqlite3_napi_step(
   (void)ptr;
   (void)n;
 
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -524,7 +510,7 @@ static emacs_value sqlite3_napi_step(
   return env->make_integer(env, sqlite3_step(stmt));
 }
 
-static emacs_value sqlite3_napi_reset(
+static emacs_value sqlite3_api_reset(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -544,7 +530,7 @@ static emacs_value sqlite3_napi_reset(
   return env->make_integer(env, sqlite3_reset(stmt));
 }
 
-static emacs_value sqlite3_napi_column_count(
+static emacs_value sqlite3_api_column_count(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -552,7 +538,6 @@ static emacs_value sqlite3_napi_column_count(
   (void)ptr;
   (void)n;
 
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -564,7 +549,7 @@ static emacs_value sqlite3_napi_column_count(
   return env->make_integer(env, sqlite3_column_count(stmt));
 }
 
-static emacs_value sqlite3_napi_fetch(
+static emacs_value sqlite3_api_fetch(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -572,7 +557,6 @@ static emacs_value sqlite3_napi_fetch(
   (void)ptr;
   (void)n;
 
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
@@ -602,13 +586,13 @@ static emacs_value sqlite3_napi_fetch(
         elts[i] = SYM(env, "nil");
     }
   }
-  emacs_value list = SYM(env, "list");
-  emacs_value res = env->funcall(env, list, ncols, elts);
+
+  emacs_value res = make_list(env, ncols, elts);
   free(elts);
   return res;
 }
 
-static emacs_value sqlite3_napi_prepare(
+static emacs_value sqlite3_api_prepare(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -616,7 +600,6 @@ static emacs_value sqlite3_napi_prepare(
   (void)ptr;
   (void)n;
 
-  // Exrtract sqlite3 db struct
   if (!env->is_not_nil(env, args[0])) {
     WARN(env, "%s: database handle is nil", __func__);
     return SYM(env, "nil");
@@ -642,13 +625,13 @@ static emacs_value sqlite3_napi_prepare(
     char buf[SQLITE3_MAX_LOG_BUF];
     snprintf(buf, SQLITE3_MAX_LOG_BUF,
              "prepare(): sqlite3_prepare_v2() returned %d", rv);
-    signal_error(env, "db-error", buf);
+    signal_error(env, "sql-error", buf);
     return SYM(env, "nil");
   }
   return env->make_user_ptr(env, sqlite3_stmt_gc, stmt);
 }
 
-static emacs_value sqlite3_napi_get_autocommit(
+static emacs_value sqlite3_api_get_autocommit(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -708,9 +691,9 @@ static int exec_callback(void *data, int ncols,
   emacs_value args[3];
   args[0] = env->make_integer(env, ncols);
   NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
-  args[1] = env->funcall(env, SYM(env, "list"), ncols, data_args);
+  args[1] = make_list(env, ncols, data_args);
   NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
-  args[2] = env->funcall(env, SYM(env, "list"), ncols, col_args);
+  args[2] = make_list(env, ncols, col_args);
   NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
 
   emacs_value v = env->funcall(env, fe->callback, 3, args);
@@ -722,7 +705,7 @@ static int exec_callback(void *data, int ncols,
   return 1;
 }
 
-static emacs_value sqlite3_napi_exec(
+static emacs_value sqlite3_api_exec(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -741,7 +724,7 @@ static emacs_value sqlite3_napi_exec(
     return SYM(env, "nil");
   }
 
-  char *errmsg;
+  char *errmsg = 0;
   int rv;
   if (n == 3) {
     struct func_env fe = { env, args[2] };
@@ -751,15 +734,17 @@ static emacs_value sqlite3_napi_exec(
   }
 
   if (rv != SQLITE_OK) {
-    ERROR(env, "%s returned %d [%s]", __func__, rv, errmsg);
+    signal_error(env, "db-error", errmsg);
+    if (errmsg)
+      sqlite3_free(errmsg);
+    return SYM(env, "nil");
   }
-  if (errmsg)
-    sqlite3_free(errmsg);
 
   return env->make_integer(env, rv);
 }
 
-static emacs_value sqlite3_napi_finalize(
+
+static emacs_value sqlite3_api_finalize(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -781,7 +766,7 @@ static emacs_value sqlite3_napi_finalize(
 }
 
 
-static emacs_value sqlite3_napi_close(
+static emacs_value sqlite3_api_close(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -802,7 +787,7 @@ static emacs_value sqlite3_napi_close(
   return SYM(env, "nil");
 }
 
-static emacs_value sqlite3_napi_last_insert_rowid(
+static emacs_value sqlite3_api_last_insert_rowid(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -821,7 +806,7 @@ static emacs_value sqlite3_napi_last_insert_rowid(
   return env->make_integer(env, (intmax_t)sqlite3_last_insert_rowid(dbh));
 }
 
-static emacs_value sqlite3_napi_set_log_level(
+static emacs_value sqlite3_api_set_log_level(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -831,12 +816,12 @@ static emacs_value sqlite3_napi_set_log_level(
 
   int log_level = env->extract_integer(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
-  sqlite3_napi_log_level = log_level;
+  sqlite3_api_log_level = log_level;
   return SYM(env, "nil");
 }
 
 #if 0
-static emacs_value sqlite3_napi_test(
+static emacs_value sqlite3_api_test(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -844,7 +829,6 @@ static emacs_value sqlite3_napi_test(
   (void)ptr;
   (void)n;
 
-  //return SYM(env, "nil");
   emacs_value *fargs = malloc(sizeof(emacs_value)*2);
   fargs[0] = env->make_integer(env, 1);
   fargs[1] = env->make_integer(env, 99);
@@ -852,7 +836,7 @@ static emacs_value sqlite3_napi_test(
 }
 #endif
 
-static emacs_value sqlite3_napi_open(
+static emacs_value sqlite3_api_open(
     emacs_env *env,
     ptrdiff_t n,
     emacs_value *args,
@@ -863,26 +847,29 @@ static emacs_value sqlite3_napi_open(
   // Filename
   char *db_file = 0;
   if (extract_string_arg(env, args[0], &db_file)) {
-    WARN(env, "%s: extract_string_arg return non-zero", __func__);
     return SYM(env, "nil");
   }
 
   // FLAGS
-  int flags = env->extract_integer(env, args[1]);
-  NON_LOCAL_EXIT_CHECK(env);
+  int flags = 0;
+  for (int i = 1; i < n; i++) {
+    flags |= env->extract_integer(env, args[i]);
+    NON_LOCAL_EXIT_CHECK(env);
+  }
 
-  sqlite3 *dbh;
+  sqlite3 *dbh = 0;
   int rv = sqlite3_open_v2(db_file, &dbh, flags, 0);
   INFO(env, "%s: file=%s, flags=%d, rv=%d", __func__, db_file, flags, rv);
   free(db_file);
 
   if (rv != SQLITE_OK) {
-    // TODO: more descriptive error message (with error code)
+    if (dbh)
+      sqlite3_free(dbh);
     signal_error(env, "db-error", "failed to open DB file");
     return SYM(env, "nil");
   }
 
-  return env->make_user_ptr(env, sqlite3_db_gc, dbh);
+  return env->make_user_ptr(env, sqlite3_dbh_gc, dbh);
 }
 
 int emacs_module_init(struct emacs_runtime *ert) {
@@ -900,58 +887,58 @@ int emacs_module_init(struct emacs_runtime *ert) {
     };
 
     struct lisp_func all_funcs[] = {
-      { "sqlite3-open", 1, 2, sqlite3_napi_open,
+      { "sqlite3-open", 1, 10, sqlite3_api_open,
         "Open a SQLite3 database." },
-      { "sqlite3-close", 1, 1, sqlite3_napi_close,
+      { "sqlite3-close", 1, 1, sqlite3_api_close,
         "Close a SQLite3 database." },
-      { "sqlite3-prepare", 2, 2, sqlite3_napi_prepare,
+      { "sqlite3-prepare", 2, 2, sqlite3_api_prepare,
         "Prepare (compile) a SQL statement." },
-      { "sqlite3-finalize", 1, 1, sqlite3_napi_finalize,
+      { "sqlite3-finalize", 1, 1, sqlite3_api_finalize,
         "Destroy a prepared statement." },
-      { "sqlite3-changes", 1, 1, sqlite3_napi_changes,
+      { "sqlite3-changes", 1, 1, sqlite3_api_changes,
         "Count the number of rows modified." },
-      { "sqlite3-step", 1, 1, sqlite3_napi_step,
+      { "sqlite3-step", 1, 1, sqlite3_api_step,
         "Evaluate a SQL statement." },
-      { "sqlite3-reset", 1, 1, sqlite3_napi_reset,
+      { "sqlite3-reset", 1, 1, sqlite3_api_reset,
         "Reset a prepared SQL statement." },
-      { "sqlite3-last-insert-rowid", 1, 1, sqlite3_napi_last_insert_rowid,
+      { "sqlite3-last-insert-rowid", 1, 1, sqlite3_api_last_insert_rowid,
         "Return last insert rowid." },
-      { "sqlite3-get-autocommit", 1, 1, sqlite3_napi_get_autocommit,
+      { "sqlite3-get-autocommit", 1, 1, sqlite3_api_get_autocommit,
         "Test for auto-commit mode." },
-      { "sqlite3-exec", 2, 3, sqlite3_napi_exec,
+      { "sqlite3-exec", 2, 3, sqlite3_api_exec,
         "One-step query execution interface." },
-      { "sqlite3-set-log-level", 1, 1, sqlite3_napi_set_log_level,
+      { "sqlite3-set-log-level", 1, 1, sqlite3_api_set_log_level,
         "Set log level (DEBUG 0, INFO 1, WARN 2, ERROR 3, NOLOG 100)." },
 
       /* bind interface */
-      { "sqlite3-bind-text", 3, 3, sqlite3_napi_bind_text,
+      { "sqlite3-bind-text", 3, 3, sqlite3_api_bind_text,
         "Bind text to a prepared SQL statement." },
-      { "sqlite3-bind-int64", 3, 3, sqlite3_napi_bind_int64,
+      { "sqlite3-bind-int64", 3, 3, sqlite3_api_bind_int64,
         "Bind int64 to a prepared SQL statement." },
-      { "sqlite3-bind-double", 3, 3, sqlite3_napi_bind_double,
+      { "sqlite3-bind-double", 3, 3, sqlite3_api_bind_double,
         "Bind double to a prepared SQL statement." },
-      { "sqlite3-bind-null", 2, 2, sqlite3_napi_bind_null,
+      { "sqlite3-bind-null", 2, 2, sqlite3_api_bind_null,
         "Bind NULL to a prepared SQL statement." },
       { "sqlite3-bind-parameter-count", 1, 1,
-        sqlite3_napi_bind_parameter_count,
+        sqlite3_api_bind_parameter_count,
         "Return the number of SQL parameters." },
-      { "sqlite3-bind-multi", 1, 127, sqlite3_napi_bind_multi,
+      { "sqlite3-bind-multi", 1, 127, sqlite3_api_bind_multi,
         "Bind multiple parameters to a prepared SQL statement." },
 
       /* Result */
-      { "sqlite3-column-count", 1, 1, sqlite3_napi_column_count,
+      { "sqlite3-column-count", 1, 1, sqlite3_api_column_count,
         "Return the number of rows in a result set." },
-      { "sqlite3-column-name", 2, 2, sqlite3_napi_column_name,
+      { "sqlite3-column-name", 2, 2, sqlite3_api_column_name,
         "Return the name of a column." },
-      { "sqlite3-column-type", 2, 2, sqlite3_napi_column_type,
+      { "sqlite3-column-type", 2, 2, sqlite3_api_column_type,
         "Return the datatype of a column." },
-      { "sqlite3-column-text", 2, 2, sqlite3_napi_column_text,
+      { "sqlite3-column-text", 2, 2, sqlite3_api_column_text,
         "Return text data of a column." },
-      { "sqlite3-column-int64", 2, 2, sqlite3_napi_column_int64,
+      { "sqlite3-column-int64", 2, 2, sqlite3_api_column_int64,
         "Return int64 data of a column." },
-      { "sqlite3-column-double", 2, 2, sqlite3_napi_column_double,
+      { "sqlite3-column-double", 2, 2, sqlite3_api_column_double,
         "Return double data of a column." },
-      { "sqlite3-fetch", 1, 1, sqlite3_napi_fetch,
+      { "sqlite3-fetch", 1, 1, sqlite3_api_fetch,
         "Return a row as a list." },
 
       { NULL, 0, 0, NULL, NULL }
@@ -965,11 +952,11 @@ int emacs_module_init(struct emacs_runtime *ert) {
                 all_funcs[i].function,
                 all_funcs[i].documentation);
     }
-    sqlite3_napi_log_level = SQLITE3_LOG_LEVEL_ERROR;
+    sqlite3_api_log_level = SQLITE3_LOG_LEVEL_ERROR;
 
     /* (provide 'sqlite3-module ) */
     emacs_value provide = SYM(env, "provide");
-    emacs_value mod = SYM(env, "sqlite3-napi-module");
+    emacs_value mod = SYM(env, "sqlite3-api-module");
     env->funcall(env, provide, 1, &mod);
     return 0;
 }

@@ -1,4 +1,16 @@
-(require 'sqlite3-napi-module)
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;;
 (defconst sqlite-version "3.16.0")
 (defconst sqlite-version-number 3016000)
 (defconst sqlite-source-id "2016-11-04 19:09:39 0e5ffd9123d6d2d2b8f3701e8a73cc98a3a7ff5f")
@@ -365,4 +377,4 @@
 (defconst sqlite-scanstat-name 3)
 (defconst sqlite-scanstat-explain 4)
 (defconst sqlite-scanstat-selectid 5)
-(provide 'sqlite3-napi)
+(provide 'sqlite3-api-constants)
