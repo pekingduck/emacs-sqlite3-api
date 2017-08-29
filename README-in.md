@@ -6,7 +6,6 @@ direct access to the core SQLite3 C API from Emacs Lisp.
 
 (setq dbh (sqlite3-open "person.sqlite3" sqlite-open-readwrite sqlite-open-create))
 (sqlite3-exec dbh "create table temp (name text, age integer)")
-(sqlite3-exec dbh "begin") ;; begin transaction
 (setq stmt (sqlite3-prepare dbh "insert into temp values (?,?)"))
 (cl-loop for i from 1 to 10 do
 	 (sqlite3-bind-multi stmt (format "name%d" i) i)
@@ -14,7 +13,6 @@ direct access to the core SQLite3 C API from Emacs Lisp.
 	 (sqlite3-step stmt)
 	 ;; call reset if you want to bind the SQL to a new set of variables
 	 (sqlite3-reset stmt) )
-(sqlite3-exec dbh "commit")
 (sqlite3-finalize stmt)
 
 (setq stmt (sqlite3-prepare dbh "select * from temp"))
@@ -24,10 +22,10 @@ direct access to the core SQLite3 C API from Emacs Lisp.
 (sqlite3-finalize stmt)
 (sqlite3-close dbh)
 ~~~
-While this module provides only 14 functions (vs 200+ in the C API), it should satisfy most
+While this module provides only 14 functions (vs [200+ in the C API](https://sqlite.org/c3ref/funclist.html)), it should satisfy most
 users' needs.
 
-This is an alpha release and it might crash your Emacs. Save your work before you try it out!
+This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
 <<TOC>>
 ## Requirements
@@ -35,7 +33,7 @@ This is an alpha release and it might crash your Emacs. Save your work before yo
 - sqlite3 library and header file
 - A C99 compiler
 
-It's been tested on macOS Sierra) and CentOS 7.
+It's been tested on macOS (Sierra) and CentOS 7.
 ## Installation
 ~~~sh
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
@@ -85,7 +83,7 @@ Close the database file.
 ~~~
 Compile the supplied SQL statement and return a statement handle.
 
-This function calls [`sqlite3_prepare_v2()`](https://www.sqlite.org/c3ref/prepare.html) internally and raises 'sql-error (such as invalid SQL statement).
+This function calls [`sqlite3_prepare_v2()`](https://www.sqlite.org/c3ref/prepare.html) internally and raises 'sql-error in case of error.
 ### sqlite3-finalize
 ~~~el
 (sqlite3-finalize statement-handle)
@@ -141,6 +139,8 @@ The callback function, if supplied, is invoked for *each row* and should accept 
 To signal an error condition inside the callback, return `nil`. 
 `sqlite3_exec()` will stop the execution and raise 'db-error.
 
+Raises db-error in case of error.
+
 An example of a callback:
 ~~~el
 (defun print-row (ncols data names)
@@ -159,13 +159,6 @@ More examples:
 
 ;; Retrieve the metadata of columns in a table
 (sqlite3-exec dbh "pragma table_info(table)" #'print-row)
-
-;; Transaction support
-(sqlite3-exec dbh "begin")
-....
-(sqlite3-exec dbh "commit")
-...
-(sqlite3-exec dbh "rollback")
 ~~~
 ### sqlite3-bind-*
 ~~~el
@@ -236,6 +229,33 @@ Example:
 convenience. It retrieves the current row as a 
 list without having to deal with sqlite3-column-* explicitly.
 
+## Transaction Support
+Use `sqlite3-exec` to start, commit and rollback a transaction:
+~~~el
+(sqlite3-exec dbh "begin")
+(sqlite3-exec dbh "commit")
+(sqlite3-exec dbh "rollback")
+~~~
+See Error Handling below on how to use the [`condition-case`](https://www.gnu.org/software/emacs/manual/html_node/elisp/Handling-Errors.html) form to handle rollback.
+## Error Handling
+Currently two error symbols are defined in `sqlite3-api.el`:
+1. `sql-error` is raised by `sqlite3-prepare`
+2. `db-error` is raised by `sqlite3-open` and `sqlite3-exec`
+
+~~~el
+(condition-case db-err
+    (progn
+      (sqlite3-exec dbh "begin")
+      (sqlite3-exec dbh "update temp set a = 1 where b = 2")
+      (sqlite3-exec dbh "commit"))
+  (db-error
+   (message "%s (%s [%d])" (car db-err) (cadr db-err) (caddr db-err))
+   (sqlite3-exec dbh "rollback")))
+~~~
+`db-err` is a list containing the error symbol (`db-error` or `sql-error`), an error message and finally an error code returned from the 
+corresponding SQLite
+C API.
+
 ## A Note on Garbage Collection
 Since Emacs's garbage collection is non-deterministic, it would be 
 a good idea 
@@ -249,6 +269,11 @@ For integers > 61 bits you can retrieve them as text as a workaround.
 ## License
 The code is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html).
 
+## Changelog
+*2017-08-29*
+- Fixed a memory leak in `sql_api_exec()`
+- Changed `sqlite3_close()` to `sqlite3_close_v2()` in `sqlite_api_close()`
+- Better error handling: Error code is returned along with error message
 ## Useful Links for Writing Dynamic Modules
 - https://phst.github.io/emacs-modules
 - http://nullprogram.com/blog/2016/11/05/

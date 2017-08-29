@@ -40,6 +40,8 @@ int plugin_is_GPL_compatible;
 #define ERROR(env, ...) message(env, SQLITE3_LOG_LEVEL_ERROR, __VA_ARGS__)
 #define INFO(env, ...) message(env, SQLITE3_LOG_LEVEL_INFO, __VA_ARGS__)
 
+#define FREE(p) if ((p) != 0) free(p);
+
 #define SQLITE3_MAX_LOG_BUF 1000
 
 static int SQLITE3_LOG_LEVEL_DEBUG = 0;
@@ -48,20 +50,22 @@ static int SQLITE3_LOG_LEVEL_WARN = 2;
 static int SQLITE3_LOG_LEVEL_ERROR = 3;
 static int sqlite3_api_log_level;
 
-int symbol_value_as_int(emacs_env *env,
-                        emacs_value sym,
-                        int defaul) {
+#if 0
+static int symbol_value_as_int(emacs_env *env,
+                               emacs_value sym,
+                               int deft) {
   emacs_value v = env->funcall(env, SYM(env, "symbol-value"), 1, &sym);
   if (IS_INTEGER(env, v))
     return env->extract_integer(env, v);
-  return defaul;
+  return deft;
 }
+#endif
 
 /* Equivalent to (list a b c) in elisp
    n is the number of arguments
    elts, an array of emacs_valuem, are elements of the list
  */
-emacs_value make_list(emacs_env *env, int n, emacs_value *elts) {
+static emacs_value make_list(emacs_env *env, int n, emacs_value *elts) {
   return env->funcall(env, SYM(env, "list"), n, elts);
 }
 
@@ -117,11 +121,22 @@ static void message(emacs_env *env, int log_level, const char *fmt, ...) {
   fprintf(stderr, "\n");
 }
 
-/* Equivalent to (signal error data) in elisp */
-void signal_error(emacs_env *env, const char *symbol, const char *msg) {
+/* Equivalent to (signal symbol '(msg code)) in elisp */
+void signal_error(
+    emacs_env *env,
+    const char *symbol,
+    const char *msg,
+    int code) {
   emacs_value signal = SYM(env, symbol);
-  emacs_value errmsg = env->make_string(env, msg, strlen(msg));
-  env->non_local_exit_signal(env, signal, make_list(env, 1, &errmsg));
+  emacs_value argv[2] = {
+    env->make_string(env, msg, strlen(msg)),
+    env->make_integer(env, code)
+  };
+
+  env->non_local_exit_signal(
+      env,
+      signal,
+      make_list(env, 2, argv));
 }
 
 /* Extract and copy string contents from function parameters */
@@ -132,7 +147,7 @@ int extract_string_arg(emacs_env *env, emacs_value arg, char **str) {
 
   *str = malloc(size);
   if (!env->copy_string_contents(env, arg, *str, &size)) {
-    free(*str);
+    FREE(*str);
     *str = 0;
     return 1;
   }
@@ -161,7 +176,7 @@ static void sqlite3_dbh_gc(void *ptr) {
 
   if (ptr) {
     INFO(0, "%s: non-null dbh", __func__);
-    sqlite3_close((sqlite3 *)ptr);
+    sqlite3_close_v2((sqlite3 *)ptr);
   }
 }
 
@@ -300,7 +315,7 @@ static emacs_value sqlite3_api_bind_text(
 
   DEBUG(env, "%s: [%s] to col %d", __func__, txt, col);
   int rv = sqlite3_bind_text(stmt, col, txt, -1, SQLITE_TRANSIENT);
-  free(txt);
+  FREE(txt);
   return env->make_integer(env, rv);
 }
 
@@ -334,7 +349,7 @@ static emacs_value sqlite3_api_bind_multi(
     } else if (IS_STRING(env, args[i])) {
       extract_string_arg(env, args[i], &txt);
       rv = sqlite3_bind_text(stmt, i, txt, -1, SQLITE_TRANSIENT);
-      free(txt);
+      FREE(txt);
       NON_LOCAL_EXIT_CHECK(env);
     } else if (args[i] == SYM(env, "nil")) {
       rv = sqlite3_bind_null(stmt, i);
@@ -588,7 +603,7 @@ static emacs_value sqlite3_api_fetch(
   }
 
   emacs_value res = make_list(env, ncols, elts);
-  free(elts);
+  FREE(elts);
   return res;
 }
 
@@ -620,12 +635,9 @@ static emacs_value sqlite3_api_prepare(
   int rv = sqlite3_prepare_v2(dbh, sql_txt, -1, &stmt, &tail);
   INFO(env, "%s: statement prepared (rv=%d)", __func__,  rv);
 
-  free(sql_txt);
+  FREE(sql_txt);
   if (rv != SQLITE_OK) {
-    char buf[SQLITE3_MAX_LOG_BUF];
-    snprintf(buf, SQLITE3_MAX_LOG_BUF,
-             "prepare(): sqlite3_prepare_v2() returned %d", rv);
-    signal_error(env, "sql-error", buf);
+    signal_error(env, "sql-error", "sqlite3_prepare_v2() failed", rv);
     return SYM(env, "nil");
   }
   return env->make_user_ptr(env, sqlite3_stmt_gc, stmt);
@@ -659,8 +671,8 @@ struct func_env {
 /* this #define is only used in exec_callback() */
 #define NON_LOCAL_EXIT_CHECK_AND_CLEANUP \
   if (env->non_local_exit_check(env) != emacs_funcall_exit_return) {    \
-  free(data_args); \
-  free(col_args); \
+  FREE(data_args); \
+  FREE(col_args);  \
   return 1; \
 }
 
@@ -697,8 +709,8 @@ static int exec_callback(void *data, int ncols,
   NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
 
   emacs_value v = env->funcall(env, fe->callback, 3, args);
-  free(data_args);
-  free(col_args);
+  FREE(data_args);
+  FREE(col_args);
 
   if (env->is_not_nil(env, v))
     return 0;
@@ -721,6 +733,7 @@ static emacs_value sqlite3_api_exec(
 
   char *sql_txt;
   if (extract_string_arg(env, args[1], &sql_txt)) {
+      FREE(sql_txt);
     return SYM(env, "nil");
   }
 
@@ -732,9 +745,10 @@ static emacs_value sqlite3_api_exec(
   } else {
     rv = sqlite3_exec(dbh, sql_txt, 0, 0, &errmsg);
   }
+  FREE(sql_txt);
 
   if (rv != SQLITE_OK) {
-    signal_error(env, "db-error", errmsg);
+    signal_error(env, "db-error", errmsg, rv);
     if (errmsg)
       sqlite3_free(errmsg);
     return SYM(env, "nil");
@@ -782,7 +796,7 @@ static emacs_value sqlite3_api_close(
   NON_LOCAL_EXIT_CHECK(env);
 
   INFO(env, "%s: entered", __func__);
-  sqlite3_close(dbh);
+  sqlite3_close_v2(dbh);
   env->set_user_ptr(env, args[0], 0);
   return SYM(env, "nil");
 }
@@ -860,12 +874,12 @@ static emacs_value sqlite3_api_open(
   sqlite3 *dbh = 0;
   int rv = sqlite3_open_v2(db_file, &dbh, flags, 0);
   INFO(env, "%s: file=%s, flags=%d, rv=%d", __func__, db_file, flags, rv);
-  free(db_file);
+  FREE(db_file);
 
   if (rv != SQLITE_OK) {
     if (dbh)
       sqlite3_free(dbh);
-    signal_error(env, "db-error", "failed to open DB file");
+    signal_error(env, "db-error", "sqlite_open_v2() failed", rv);
     return SYM(env, "nil");
   }
 
