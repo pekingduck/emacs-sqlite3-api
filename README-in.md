@@ -249,7 +249,7 @@ Currently two error symbols are defined in `sqlite3-api.el`:
       (sqlite3-exec dbh "update temp set a = 1 where b = 2")
       (sqlite3-exec dbh "commit"))
   (db-error
-   (message "Symbol:%s, Message:%s, Error Code:%d" (car db-err) (cadr db-err) (caddr db-err))
+   (message "Symbol:%s, Message:%s, Error Code:%d" (elt db-err 0) (elt db-err 1) (elt db-err 2))
    (sqlite3-exec dbh "rollback")))
 ~~~
 `db-err` is a list containing the error symbol (`db-error` or `sql-error`), an error message and finally an error code returned from the 
