@@ -4,12 +4,12 @@ EMACS252=$(HOME)/test-emacs/bin/emacs
 EMACS251=$(HOME)/test-emacs-251/bin/emacs
 MODULE=sqlite3-api-module.so
 
-all: $(MODULE) misc
+all: $(MODULE)
 
 clean:
 	rm -f *.so *.o
 
-misc:
+consts:
 	(cd tools; ./run.sh)
 
 %.so: %.o

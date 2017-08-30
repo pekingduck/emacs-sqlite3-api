@@ -820,6 +820,34 @@ static emacs_value sqlite3_api_last_insert_rowid(
   return env->make_integer(env, (intmax_t)sqlite3_last_insert_rowid(dbh));
 }
 
+
+#if 0
+/* sqlite version >= 3.18 only */
+static emacs_value sqlite3_api_set_last_insert_rowid(
+    emacs_env *env,
+    ptrdiff_t n,
+    emacs_value *args,
+    void *ptr) {
+  (void)ptr;
+  (void)n;
+
+  if (!env->is_not_nil(env, args[0])) {
+    WARN(env, "%s: database handle is nil", __func__);
+    return SYM(env, "nil");
+  }
+
+  sqlite3 *dbh = (sqlite3 *)env->get_user_ptr(env, args[0]);
+  NON_LOCAL_EXIT_CHECK(env);
+
+  sqlite3_int64 rowid = env->extract_integer(env, args[1]);
+  NON_LOCAL_EXIT_CHECK(env);
+
+  sqlite3_set_last_insert_rowid(dbh, rowid);
+
+  return SYM(env, "nil");
+}
+#endif
+
 static emacs_value sqlite3_api_set_log_level(
     emacs_env *env,
     ptrdiff_t n,
@@ -917,6 +945,11 @@ int emacs_module_init(struct emacs_runtime *ert) {
         "Reset a prepared SQL statement." },
       { "sqlite3-last-insert-rowid", 1, 1, sqlite3_api_last_insert_rowid,
         "Return last insert rowid." },
+#if 0
+      { "sqlite3-set-last-insert-rowid", 2, 2,
+        sqlite3_api_set_last_insert_rowid,
+        "Set last insert rowid." },
+#endif
       { "sqlite3-get-autocommit", 1, 1, sqlite3_api_get_autocommit,
         "Test for auto-commit mode." },
       { "sqlite3-exec", 2, 3, sqlite3_api_exec,
