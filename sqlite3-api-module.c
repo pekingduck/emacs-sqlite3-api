@@ -534,7 +534,7 @@ static emacs_value sqlite3_api_reset(
   (void)n;
 
   if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "reset(): statement handle is nil");
+    WARN(env, "%s: statement handle is nil", __func__);
     return SYM(env, "nil");
   }
 
