@@ -21,7 +21,7 @@ consts:
 module: $(MODULE).so
 	mkdir $(MODULE_BASENAME)
 	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\")" > $(MODULE_PKG_EL)
-	cp $(MODULE).so $(MODULE_BASENAME)
+	cp $(MODULE).so sqlite3-api-constants.el $(MODULE_BASENAME)
 	tar cvf $(MODULE_TAR) $(MODULE_BASENAME)
 	echo $(MODULE_TAR) > MODULE
 

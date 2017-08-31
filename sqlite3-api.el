@@ -1,3 +1,14 @@
+;;; sqlite3-api.el --- SQLite3 API
+;;; Commentary:
+;; This package defines errors for sqlite3-api-module.
+;;
+;; Author: Peking Duck <github.com/pekingduck>
+;; Version: 0.0.1
+;; Package-Version: 20170901
+;; Package-Requires: ((emacs "25.1"))
+;; Keywords: data, extensions
+;; URL: https://github.com/pekingduck/emacs-sqlite3-api
+
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -12,7 +23,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; sqlite-* constants
-(require 'sqlite3-api-constants)
+(require 'sqlite3-api-constants nil t)
 
 ;; Dynamic module
 (require 'sqlite3-api-module nil t)
@@ -52,6 +63,7 @@
 			   (point-min)
 			   (1- (point-max)))))
 	      (package-install-file tar)
+	      (require 'sqlite3-api-module)
 	      (message "%s successfully installed" (file-name-base tar)))
 	  (error
 	   (message "Installation aborted: %S" err)))
@@ -59,3 +71,4 @@
       (cd cur-dir))))
 
 (provide 'sqlite3-api)
+;;; sqlite3-api.el ends here

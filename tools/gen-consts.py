@@ -21,5 +21,5 @@ for line in sys.stdin.readlines():
       print('  printf("(defconst {1} \\"%s\\")\\n", {0});'.format(fields[1], name))
     else:
       print('  printf("(defconst {1} %d)\\n", {0});'.format(fields[1], name))
-print('  printf("(provide \'sqlite3-api-constants)");')
+print('  printf("(provide \'sqlite3-api-constants)\\n");')
 print("}")

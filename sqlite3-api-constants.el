@@ -1,3 +1,15 @@
+;;; sqlite3-api-constants.el --- Constants for SQLite3 API
+;;; Commentary:
+;; This package provides sqlite-* constants for sqlite3-api.
+;; The file is auto-generated. Do not edit.
+
+;; Author: Peking Duck <github.com/pekingduck>
+;; Version: 0.0.1
+;; Package-Version: 20170901
+;; Package-Requires: ((emacs "25.1"))
+;; Keywords: data, extensions
+;; URL: https://github.com/pekingduck/emacs-sqlite3-api
+
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
@@ -378,3 +390,4 @@
 (defconst sqlite-scanstat-explain 4)
 (defconst sqlite-scanstat-selectid 5)
 (provide 'sqlite3-api-constants)
+;;; sqlite3-api-constants.el ends here
