@@ -4,6 +4,9 @@ EMACS252=$(HOME)/test-emacs/bin/emacs
 EMACS251=$(HOME)/test-emacs-251/bin/emacs
 MODULE=sqlite3-api-module
 MODULE_VERSION=0.0.1
+MODULE_BASENAME=$(MODULE)-$(MODULE_VERSION)
+MODULE_PKG_EL=$(MODULE_BASENAME)/$(MODULE)-pkg.el
+MODULE_TAR=$(MODULE_BASENAME).tar
 
 all: $(MODULE).so
 
@@ -15,10 +18,12 @@ consts:
 
 # File "MODULE" is read by (sqlite3-api-install-dynamic-module)
 # during installation
-package: $(MODULE).so
-	echo $(MODULE)-$(MODULE_VERSION).tar > MODULE
-	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\")" > $(MODULE)-pkg.el
-	tar cvf $(MODULE)-$(MODULE_VERSION).tar $(MODULE)-pkg.el $(MODULE).so
+module: $(MODULE).so
+	mkdir $(MODULE_BASENAME)
+	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\")" > $(MODULE_PKG_EL)
+	cp $(MODULE).so $(MODULE_BASENAME)
+	tar cvf $(MODULE_TAR) $(MODULE_BASENAME)
+	echo $(MODULE_TAR) > MODULE
 
 %.so: %.o
 	$(CC) -shared -o $@ $< -lsqlite3
