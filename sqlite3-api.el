@@ -1,6 +1,4 @@
-;;; sqlite3-api.el --- SQLite3 API
-;;; Commentary:
-;; This package defines errors for sqlite3-api-module.
+;;; sqlite3-api.el --- Provides access to SQLite3 C API
 ;;
 ;; Author: Peking Duck <github.com/pekingduck>
 ;; Version: 0.0.1
@@ -21,6 +19,17 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+;; This package provides access to SQLite3 C API via dynamic module.
+;; After installing this package, you should do a
+;; M-x sqlite3-api-install-dynamic-module to install the actual
+;; dynamic module.
+;;
+;; Visit https://github.com/pekingduck/emacs-sqlite3-api for
+;; documentation.
+
+;;; Code
 
 ;; sqlite-* constants
 (require 'sqlite3-api-constants nil t)
