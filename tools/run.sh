@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# This script generates sqlite3-api-constants.el.
+#
+# First all '#define SQLITE...' lines are extracted from sqlite3.h
+# Then gen-consts.py takes these lines and produces a .c that in turn
+# prints out a .el file.
+
+# locate the path to sqlite3.h
+SQLITE3_H=$(echo '#include <sqlite3.h>' | gcc -x c -H -fsyntax-only - 2>&1 | grep '^\. ' | cut -f2 -d' ')
 DEST=sqlite3-api-constants.el
 cat <<EOF > $DEST
 ;;; sqlite3-api-constants.el --- Constants for SQLite3 API
@@ -31,7 +39,7 @@ EOF
 EXE=./def
 
 rm -f $EXE ${EXE}.c
-grep "^#define SQLITE" /usr/include/sqlite3.h | ./gen-consts.py > ${EXE}.c
+grep "^#define SQLITE" $SQLITE3_H | ./gen-consts.py > ${EXE}.c
 gcc -o $EXE ${EXE}.c -lsqlite3
 ${EXE} >> $DEST
 echo ";;; sqlite3-api-constants.el ends here" >> $DEST

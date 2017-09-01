@@ -13,10 +13,10 @@ MODULE_BASENAME=$(MODULE)-$(MODULE_VERSION)
 MODULE_PKG_EL=$(MODULE_BASENAME)/$(MODULE)-pkg.el
 MODULE_TAR=$(MODULE_BASENAME).tar
 
-all: $(MODULE).so
+all: consts $(MODULE).so 
 
 clean:
-	rm -rf *.so *.o *.tar MODULE $(MODULE_BASENAME)
+	rm -rf *.so *.o *.tar MODULE $(MODULE_BASENAME) tools/*.el
 
 # create sqlite3-api-constants.el
 consts:
@@ -24,7 +24,7 @@ consts:
 
 # File "MODULE" is read by (sqlite3-api-install-dynamic-module)
 # during installation
-module: clean $(MODULE).so
+module: clean consts $(MODULE).so 
 	mkdir $(MODULE_BASENAME)
 	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\" '((sqlite3-api \"0.0.1\")))" > $(MODULE_PKG_EL)
 	cp $(MODULE).so tools/$(PKG)-constants.el $(MODULE_BASENAME)

@@ -35,6 +35,18 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 
 It's been tested on macOS (Sierra) and CentOS 7.
 ## Installation
+### ELPA
+<!--
+Install `sqlite3-api` from the MELPA Repository. To enable installation of packages from MELPA, follow the instructions [here](https://github.com/melpa/melpa#usage).
+
+After you install and `(require 'sqlite3-api)`, do a 
+`M-x sqlite3-api-install-dynamic-module`. This command will:
+1. Clone this repo to your local machine,
+1. Compile the source code to produce the dynamic module
+1. Create and install a package called sqlite3-api-module-x.y.z
+-->
+Coming Soon
+### Manual
 ~~~sh
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
@@ -45,6 +57,11 @@ A copy of `emacs-module.h` is included in this repo so Emacs source tree
 is not needed to build the module.
 
 ## API
+To load the package, put the following in your `.emacs`:
+~~~el
+(require 'sqlite3-api)
+~~~
+
 An application will typically use sqlite3_open() to create a single database connection during initialization. 
 
 To run an SQL statement, the application follows these steps:
@@ -110,7 +127,8 @@ Return the number of rows modified (for update/delete/insert statements)
 (sqlite3-reset statement-handle)
 ~~~
 Reset a prepared statement. Call this function if you want to re-bind 
-the statement to new variables.
+the statement to new variables, or to re-execute the prepared statement
+from the start.
 ### sqlite3-last-insert-rowid
 ~~~el
 (sqlite3-last-insert-rowid database-handle)
@@ -136,7 +154,7 @@ The callback function, if supplied, is invoked for *each row* and should accept 
  2. the second parameter is the actual data (as a list strings or nil in case of NULL); 
  3. the third one is a list of column names. 
  
-To signal an error condition inside the callback, return `nil`. 
+To signal an error condition inside the callback, return `nil`.
 `sqlite3_exec()` will stop the execution and raise 'db-error.
 
 Raises db-error in case of error.
@@ -147,7 +165,7 @@ An example of a callback:
   (cl-loop for i from 0 to (1- ncols) do
            (message "[%d]%s->%s" elt (ncols names i) (elt data i))
            (message "--------------------"))
-  t)
+  t) ;; t means everything's OK
   
 (sqlite3-exec dbh "select * from table_a; select * from table b"
               #'print-row)
