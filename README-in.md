@@ -39,7 +39,7 @@ It's been tested on macOS (Sierra) and CentOS 7.
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
 $ make
-$ cp sqlite3-api.el sqlite3-api-constants.el sqlite3-api-module.so /your/elisp/load-path/
+$ cp sqlite3-api.el tools/sqlite3-api-constants.el sqlite3-api-module.so /your/elisp/load-path/
 ~~~
 A copy of `emacs-module.h` is included in this repo so Emacs source tree
 is not needed to build the module.

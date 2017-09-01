@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEST=../sqlite3-api-constants.el
+DEST=sqlite3-api-constants.el
 cat <<EOF > $DEST
 ;;; sqlite3-api-constants.el --- Constants for SQLite3 API
 ;;; Commentary:
@@ -8,8 +8,8 @@ cat <<EOF > $DEST
 ;; The file is auto-generated. Do not edit.
 
 ;; Author: Peking Duck <github.com/pekingduck>
-;; Version: 0.0.1
-;; Package-Version: 20170901
+;; Version: $1
+;; Package-Version: $2
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: data, extensions
 ;; URL: https://github.com/pekingduck/emacs-sqlite3-api
