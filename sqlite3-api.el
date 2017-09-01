@@ -29,7 +29,7 @@
 ;; Visit https://github.com/pekingduck/emacs-sqlite3-api for
 ;; documentation.
 
-;;; Code
+;;; Code:
 
 ;; sqlite-* constants
 (require 'sqlite3-api-constants nil t)
