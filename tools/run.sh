@@ -9,7 +9,6 @@ cat <<EOF > $DEST
 
 ;; Author: Peking Duck <github.com/pekingduck>
 ;; Version: $1
-;; Package-Version: $2
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: data, extensions
 ;; URL: https://github.com/pekingduck/emacs-sqlite3-api

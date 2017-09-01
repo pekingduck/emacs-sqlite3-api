@@ -9,7 +9,6 @@ PKG=sqlite3-api
 # dynamic module package
 MODULE=$(PKG)-module
 MODULE_VERSION=0.0.1
-MODULE_PKG_VERSION=20170901
 MODULE_BASENAME=$(MODULE)-$(MODULE_VERSION)
 MODULE_PKG_EL=$(MODULE_BASENAME)/$(MODULE)-pkg.el
 MODULE_TAR=$(MODULE_BASENAME).tar
@@ -21,7 +20,7 @@ clean:
 
 # create sqlite3-api-constants.el
 consts:
-	(cd tools; ./run.sh $(MODULE_VERSION) $(MODULE_PKG_VERSION))
+	(cd tools; ./run.sh $(MODULE_VERSION))
 
 # File "MODULE" is read by (sqlite3-api-install-dynamic-module)
 # during installation

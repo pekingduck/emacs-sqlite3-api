@@ -5,7 +5,6 @@
 
 ;; Author: Peking Duck <github.com/pekingduck>
 ;; Version: 0.0.1
-;; Package-Version: 20170901
 ;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: data, extensions
 ;; URL: https://github.com/pekingduck/emacs-sqlite3-api
