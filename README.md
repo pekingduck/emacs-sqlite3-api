@@ -30,8 +30,8 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 ## Table of Contents
 * [Requirements](#1)
 * [Installation](#2)
-    * [ELPA](#2-1)
-    * [Manual](#2-2)
+    * [Manual](#2-1)
+    * [ELPA](#2-2)
 * [API](#3)
     * [sqlite3-open](#3-1)
     * [sqlite3-close](#3-2)
@@ -57,31 +57,31 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 
 ## <a name="1"/> Requirements
 - Emacs 25.1 or above, compiled with module support (`./configure --with-modules`)
-- sqlite3 library and header file
+- SQLite3 v3.16.0 or above
 - A C99 compiler
 
 It's been tested on macOS (Sierra) and CentOS 7.
 ## <a name="2"/> Installation
-### <A NAME="2-1"/> ELPA
-<!--
-Install `sqlite3-api` from the MELPA Repository. To enable installation of packages from MELPA, follow the instructions [here](https://github.com/melpa/melpa#usage).
-
-After you install and `(require 'sqlite3-api)`, do a 
-`M-x sqlite3-api-install-dynamic-module`. This command will:
-1. Clone this repo to your local machine,
-1. Compile the source code to produce the dynamic module
-1. Create and install a package called sqlite3-api-module-x.y.z
--->
-Coming Soon
-### <a name="2-2"/> Manual
+### <a name="2-1"/> Manual
 ~~~sh
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
 $ make
-$ cp sqlite3-api.el tools/sqlite3-api-constants.el sqlite3-api-module.so /your/elisp/load-path/
+$ cp sqlite3-api.so /your/elisp/load-path/
 ~~~
-A copy of `emacs-module.h` is included in this repo so Emacs source tree
-is not needed to build the module.
+### <A NAME="2-2"/> ELPA
+~~~sh
+$ git co https://github.com/pekingduck/emacs-sqlite3-api
+$ cd emacs-sqlite3-api
+$ make module
+~~~
+A tar archive called `sqlite3-api-X.Y.tar` will be created. Do a `M-x package-install-file` in Emacs to install that tar archive and 
+you'll all set.
+
+Currently there's no way to reload a dynamic module in Emacs
+(`unload-feature` doesn't seem to work for dynamic module.)
+If you are updating from an older version, you'll need to restart Emacs
+for the new module to take effect.
 
 ## <A NAME="3"/> API
 To load the package, put the following in your `.emacs`:
@@ -243,7 +243,7 @@ Return number of columns in a result set.
 ~~~e1
 (sqlite3-column-type statement-handle column-no)
 ~~~
-Return the type (`sqlite-integer`, `sqlite-float`, `sqlite-text` or
+Return the type (`sqlite-integer`, `sqlite-float`, `sqlite3-text` or
 `sqlite-null`) of the specified column. 
 
 Note: Column number starts from 0.
@@ -309,7 +309,7 @@ to manually free database/statement handles once they are not needed.
 ## <a name="7"/> Known Problems
 - SQLite3 supports 64 bit integers but Emacs integers are only 61 bits.
 For integers > 61 bits you can retrieve them as text as a workaround.
-- BLOB/TEXT columns with embedded NULLs are not supported.
+- BLOB and TEXT columns with embedded NULLs are not supported.
 
 ## <a name="8"/> License
 The code is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html).

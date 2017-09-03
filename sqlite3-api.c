@@ -20,7 +20,6 @@
 #include <float.h>
 #include "emacs-module.h"
 
-
 int plugin_is_GPL_compatible;
 
 #define NON_LOCAL_EXIT_CHECK(env) \
@@ -914,6 +913,36 @@ static emacs_value sqlite3_api_open(
   return env->make_user_ptr(env, sqlite3_dbh_gc, dbh);
 }
 
+/* (define-error err_sym err_desc) */
+static void define_error(
+    emacs_env *env,
+    const char *err_sym,
+    const char *err_desc) {
+  emacs_value argv[] = {
+    SYM(env, err_sym),
+    env->make_string(env, err_desc, strlen(err_desc))
+  };
+  env->funcall(env, SYM(env, "define-error"), 2, argv);
+}
+
+/* Since defconst is a special form, we need to do:
+   (eval (list '(defconst sym val)))
+   Reference: https://phst.github.io/emacs-modules#funcall
+ */
+static void defconst(emacs_env *env, const char *sym, emacs_value val) {
+  emacs_value list_argv[] = {
+    SYM(env, "defconst"),
+    SYM(env, sym),
+    val
+  };
+  emacs_value form = make_list(env, 3, list_argv);
+  emacs_value eval_argv[] = { form, SYM(env, "t") };
+  env->funcall(env, SYM(env, "eval"), 2, eval_argv);
+  /* if (env->non_local_exit_check (env) == emacs_funcall_exit_return) { */
+  /*   fprintf(stderr, "SCREWED: %s\n", sym); */
+  /* } */
+}
+
 int emacs_module_init(struct emacs_runtime *ert) {
     emacs_env *env = ert->get_environment(ert);
 
@@ -1001,9 +1030,15 @@ int emacs_module_init(struct emacs_runtime *ert) {
     }
     sqlite3_api_log_level = SQLITE3_LOG_LEVEL_ERROR;
 
+
+#include "consts.c"
+
+    define_error(env, "db-error", "Database Error");
+    define_error(env, "sql-error", "SQL Error");
+
     /* (provide 'sqlite3-module ) */
     emacs_value provide = SYM(env, "provide");
-    emacs_value mod = SYM(env, "sqlite3-api-module");
+    emacs_value mod = SYM(env, "sqlite3-api");
     env->funcall(env, provide, 1, &mod);
     return 0;
 }

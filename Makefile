@@ -2,34 +2,33 @@ CC = gcc
 CFLAGS = -g3 -Wall -std=c99
 EMACS252=$(HOME)/test-emacs/bin/emacs
 EMACS251=$(HOME)/test-emacs-251/bin/emacs
+SQLITE3_H=$(shell tools/find-sqlite3-h.sh)
 
 # Melpa package
 PKG=sqlite3-api
 
 # dynamic module package
-MODULE=$(PKG)-module
-MODULE_VERSION=0.0.1
+MODULE=$(PKG)
+MODULE_VERSION=0.1
 MODULE_BASENAME=$(MODULE)-$(MODULE_VERSION)
 MODULE_PKG_EL=$(MODULE_BASENAME)/$(MODULE)-pkg.el
 MODULE_TAR=$(MODULE_BASENAME).tar
 
-all: consts $(MODULE).so 
+all: consts.c $(MODULE).so 
 
 clean:
-	rm -rf *.so *.o *.tar MODULE $(MODULE_BASENAME) tools/*.el
-
-# create sqlite3-api-constants.el
-consts:
-	(cd tools; ./run.sh $(MODULE_VERSION))
+	rm -rf *.so *.o *.tar consts.c
 
 # File "MODULE" is read by (sqlite3-api-install-dynamic-module)
 # during installation
-module: clean consts $(MODULE).so 
-	mkdir $(MODULE_BASENAME)
-	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\" '((sqlite3-api \"0.0.1\")))" > $(MODULE_PKG_EL)
-	cp $(MODULE).so tools/$(PKG)-constants.el $(MODULE_BASENAME)
+module: consts.c $(MODULE).so 
+	mkdir -p $(MODULE_BASENAME)
+	cp $(MODULE).so $(MODULE_BASENAME)
+	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\")" > $(MODULE_PKG_EL)
 	tar cvf $(MODULE_TAR) $(MODULE_BASENAME)
-	echo $(MODULE_TAR) > MODULE
+
+consts.c: $(SQLITE_H)
+	grep "^#define SQLITE" $(SQLITE3_H) | tools/gen-consts.py > $@
 
 %.so: %.o
 	$(CC) -shared -o $@ $< -lsqlite3
@@ -38,9 +37,9 @@ module: clean consts $(MODULE).so
 	$(CC) $(CFLAGS) -fPIC -c $<
 
 # Emacs 25.2
-test: $(MODULE)
-	$(EMACS252) -batch -Q -l test/regression.el
+test:
+	$(EMACS252) -batch -Q -l tests/regression.el
 
 # Emacs 25.1
-test251: $(MODULE)
-	$(EMACS251) -batch -Q -l test/regression.el
+t251:
+	$(EMACS251) -batch -Q -l tests/regression.el

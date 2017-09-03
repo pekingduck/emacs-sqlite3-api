@@ -2,8 +2,6 @@
 *.so
 **/.DS_Store
 sqlite3-napi-module-with-create-function.c
+consts.c
 xxx.el
-tools/def.c
-tools/def
-MODULE
-**/sqlite3-api-module-*
+**/sqlite3-api-*
