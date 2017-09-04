@@ -17,7 +17,7 @@ MODULE_TAR=$(MODULE_BASENAME).tar
 all: consts.c $(MODULE).so 
 
 clean:
-	rm -rf *.so *.o *.tar consts.c install.el
+	rm -rf *.so *.o *.tar consts.c $(MODULE_BASENAME)
 
 # File "MODULE" is read by (sqlite3-api-install-dynamic-module)
 # during installation
@@ -26,9 +26,7 @@ module: consts.c $(MODULE).so
 	cp $(MODULE).so $(MODULE_BASENAME)
 	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\")" > $(MODULE_PKG_EL)
 	tar cvf $(MODULE_TAR) $(MODULE_BASENAME)
-	echo "(package-install-file \"$(MODULE_TAR)\")" > install.el
 
-#
 install: module
 	emacsclient -e '(package-install-file "$(MODULE_TAR)")'
 

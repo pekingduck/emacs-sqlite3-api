@@ -30,8 +30,6 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 ## Table of Contents
 * [Requirements](#1)
 * [Installation](#2)
-    * [Manual](#2-1)
-    * [ELPA](#2-2)
 * [API](#3)
     * [sqlite3-open](#3-1)
     * [sqlite3-close](#3-2)
@@ -57,19 +55,18 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 
 ## <a name="1"/> Requirements
 - Emacs 25.1 or above, compiled with module support (`./configure --with-modules`)
-- SQLite3 v3.16.0 or above
+- SQLite3 v3.16.0 or above. Older versions might work but I have not personally tested those.
 - A C99 compiler
 
 It's been tested on macOS (Sierra) and CentOS 7.
 ## <a name="2"/> Installation
-### <a name="2-1"/> Manual
 ~~~sh
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
 $ make
 $ cp sqlite3-api.so /your/elisp/load-path/
 ~~~
-### <A NAME="2-2"/> ELPA
+<!--
 ~~~sh
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
@@ -77,7 +74,7 @@ $ make module
 ~~~
 A tar archive called `sqlite3-api-X.Y.tar` will be created. Do a `M-x package-install-file` in Emacs to install that tar archive and 
 you'll all set.
-
+-->
 Currently there's no way to reload a dynamic module in Emacs
 (`unload-feature` doesn't seem to work for dynamic module.)
 If you are updating from an older version, you'll need to restart Emacs
