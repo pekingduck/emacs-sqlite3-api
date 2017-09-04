@@ -9,21 +9,23 @@ PKG=sqlite3-api
 
 # dynamic module package
 MODULE=$(PKG)
+MODULE_SO=$(MODULE)-module.so
 MODULE_VERSION=0.1
 MODULE_BASENAME=$(MODULE)-$(MODULE_VERSION)
+MODULE_EL=$(MODULE).el
 MODULE_PKG_EL=$(MODULE_BASENAME)/$(MODULE)-pkg.el
 MODULE_TAR=$(MODULE_BASENAME).tar
 
-all: consts.c $(MODULE).so 
+all: consts.c $(MODULE_SO)
 
 clean:
 	rm -rf *.so *.o *.tar consts.c install.el
 
 # File "MODULE" is read by (sqlite3-api-install-dynamic-module)
 # during installation
-module: consts.c $(MODULE).so 
+module: consts.c $(MODULE_SO)
 	mkdir -p $(MODULE_BASENAME)
-	cp $(MODULE).so $(MODULE_BASENAME)
+	cp $(MODULE_SO) $(MODULE_EL) $(MODULE_BASENAME)
 	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\")" > $(MODULE_PKG_EL)
 	tar cvf $(MODULE_TAR) $(MODULE_BASENAME)
 	echo "(package-install-file \"$(MODULE_TAR)\")" > install.el

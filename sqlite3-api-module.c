@@ -1038,7 +1038,7 @@ int emacs_module_init(struct emacs_runtime *ert) {
 
     /* (provide 'sqlite3-module ) */
     emacs_value provide = SYM(env, "provide");
-    emacs_value mod = SYM(env, "sqlite3-api");
+    emacs_value mod = SYM(env, "sqlite3-api-module");
     env->funcall(env, provide, 1, &mod);
     return 0;
 }
