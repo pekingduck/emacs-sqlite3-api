@@ -76,7 +76,7 @@ A tar archive called `sqlite3-api-X.Y.tar` will be created. Do a `M-x package-in
 you'll all set.
 -->
 Currently there's no way to reload a dynamic module in Emacs
-(`unload-feature` doesn't seem to work for dynamic module.)
+(`unload-feature` doesn't seem to work for dynamic modules.)
 If you are updating from an older version, you'll need to restart Emacs
 for the new module to take effect.
 
@@ -312,6 +312,8 @@ For integers > 61 bits you can retrieve them as text as a workaround.
 The code is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html).
 
 ## <a name="9"/> Changelog
+*2017-09-04*
+- Emacs Lisp code removed. The package is now pure C.
 *2017-08-29*
 - Fixed a memory leak in `sql_api_exec()`
 - Changed `sqlite3_close()` to `sqlite3_close_v2()` in `sqlite_api_close()`
