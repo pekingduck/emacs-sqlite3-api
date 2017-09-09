@@ -1,4 +1,4 @@
-# SQLite3 API for Emacs 25+
+# SQLite3 API v0.1 for Emacs 25+
 `sqlite3-api` is a dynamic module for GNU Emacs 25+ that provides 
 direct access to the core SQLite3 C API from Emacs Lisp.
 ~~~el
@@ -25,6 +25,8 @@ direct access to the core SQLite3 C API from Emacs Lisp.
 While this module provides only 14 functions (vs [200+ in the C API](https://sqlite.org/c3ref/funclist.html)), it should satisfy most
 users' needs.
 
+The current version is 0.1.
+
 This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
 <<TOC>>
@@ -50,6 +52,10 @@ $ make module
 A tar archive called `sqlite3-api-X.Y.tar` will be created. Do a `M-x package-install-file` in Emacs to install that tar archive and 
 you'll all set.
 -->
+If you have sqlite3 installed in a nonstandard location, you can do
+~~~sh
+$ make INC=/path/to/sqlite3/include LIB="-L/path/to/sqlite3/lib -lsqlite3"
+~~~
 Currently there's no way to reload a dynamic module in Emacs
 (`unload-feature` doesn't seem to work for dynamic modules.)
 If you are updating from an older version, you'll need to restart Emacs
@@ -287,9 +293,10 @@ For integers > 61 bits you can retrieve them as text as a workaround.
 The code is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html).
 
 ## Changelog
-*2017-09-04*
+*v0.1 - 2017-09-04*
 - Emacs Lisp code removed. The package is now pure C.
-*2017-08-29*
+
+*v0.0 - 2017-08-29*
 - Fixed a memory leak in `sql_api_exec()`
 - Changed `sqlite3_close()` to `sqlite3_close_v2()` in `sqlite_api_close()`
 - Better error handling: Error code is returned along with error message

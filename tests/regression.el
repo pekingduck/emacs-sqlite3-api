@@ -14,8 +14,6 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(setq lexical-binding t)
-(add-to-list 'load-path ".")
 (require 'sqlite3-api)
 (require 'cl)
 
