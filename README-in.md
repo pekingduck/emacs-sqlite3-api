@@ -1,4 +1,4 @@
-# SQLite3 API v0.1 for Emacs 25+
+# SQLite3 API v0.11 for Emacs 25+
 `sqlite3-api` is a dynamic module for GNU Emacs 25+ that provides 
 direct access to the core SQLite3 C API from Emacs Lisp.
 ~~~el
@@ -12,7 +12,7 @@ direct access to the core SQLite3 C API from Emacs Lisp.
 	  ;; execute the SQL
 	 (sqlite3-step stmt)
 	 ;; call reset if you want to bind the SQL to a new set of variables
-	 (sqlite3-reset stmt) )
+	 (sqlite3-reset stmt))
 (sqlite3-finalize stmt)
 
 (setq stmt (sqlite3-prepare dbh "select * from temp"))
@@ -25,7 +25,7 @@ direct access to the core SQLite3 C API from Emacs Lisp.
 While this module provides only 14 functions (vs [200+ in the C API](https://sqlite.org/c3ref/funclist.html)), it should satisfy most
 users' needs.
 
-The current version is 0.1.
+The current version is v0.11.
 
 This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
@@ -108,9 +108,9 @@ Compile the supplied SQL statement and return a statement handle.
 This function calls [`sqlite3_prepare_v2()`](https://www.sqlite.org/c3ref/prepare.html) internally and raises 'sql-error in case of error.
 ### sqlite3-finalize
 ~~~el
-(sqlite3-finalize statement-handle)
+(sqlite3-finalize statement-handle1 statement-handle2 ...)
 ~~~
-Destroy a prepared statement.
+Destroy prepared statements.
 ### sqlite3-step
 ~~~el
 (sqlite3-step statement-handle)
@@ -293,6 +293,9 @@ For integers > 61 bits you can retrieve them as text as a workaround.
 The code is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html).
 
 ## Changelog
+*v0.11 - 2017-09-14*
+- `sqlite3-finalize` now accepts multiple handles.
+
 *v0.1 - 2017-09-04*
 - Emacs Lisp code removed. The package is now pure C.
 

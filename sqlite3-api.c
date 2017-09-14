@@ -764,18 +764,23 @@ static emacs_value sqlite3_api_finalize(
     emacs_value *args,
     void *ptr) {
   (void)ptr;
-  (void)n;
-
-  /* User passed a nil stmt */
-  if (!env->is_not_nil(env, args[0]))
-    return SYM(env, "nil");
-
-  sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
-  NON_LOCAL_EXIT_CHECK(env);
 
   INFO(env, "%s: entered", __func__);
-  sqlite3_finalize(stmt);
-  env->set_user_ptr(env, args[0], 0);
+
+  for (int i = 0; i < n; i++) {
+    /* User passed a nil stmt */
+    if (!env->is_not_nil(env, args[i]))
+      /* return SYM(env, "nil"); */
+      continue;
+
+    sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[i]);
+    NON_LOCAL_EXIT_CHECK(env);
+
+    sqlite3_finalize(stmt);
+    env->set_user_ptr(env, args[i], 0);
+    DEBUG(env, "%s: #%d finalized", __func__, i);
+  }
+
   return SYM(env, "nil");
 }
 
@@ -965,7 +970,7 @@ int emacs_module_init(struct emacs_runtime *ert) {
         "Close a SQLite3 database." },
       { "sqlite3-prepare", 2, 2, sqlite3_api_prepare,
         "Prepare (compile) a SQL statement." },
-      { "sqlite3-finalize", 1, 1, sqlite3_api_finalize,
+      { "sqlite3-finalize", 1, 127, sqlite3_api_finalize,
         "Destroy a prepared statement." },
       { "sqlite3-changes", 1, 1, sqlite3_api_changes,
         "Count the number of rows modified." },

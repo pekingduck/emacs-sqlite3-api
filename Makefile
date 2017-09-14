@@ -5,6 +5,8 @@ CFLAGS=-g3 -Wall -std=c99 $(INC)
 
 EMACS252=$(HOME)/test-emacs/bin/emacs
 EMACS251=$(HOME)/test-emacs-251/bin/emacs
+EMACS253=$(HOME)/test-emacs-253/bin/emacs
+
 SQLITE3_H=$(shell tools/find-sqlite3-h.sh $(INC))
 
 # Melpa package
@@ -12,7 +14,7 @@ PKG=sqlite3-api
 
 # dynamic module package
 MODULE=$(PKG)
-MODULE_VERSION=0.1
+MODULE_VERSION=0.11
 MODULE_BASENAME=$(MODULE)-$(MODULE_VERSION)
 MODULE_PKG_EL=$(MODULE_BASENAME)/$(MODULE)-pkg.el
 MODULE_TAR=$(MODULE_BASENAME).tar
@@ -49,3 +51,7 @@ test:
 # Emacs 25.1
 t251:
 	$(EMACS251) -batch -Q -L . -l tests/regression.el
+
+# Emacs 25.1
+t253:
+	$(EMACS253) -batch -Q -L . -l tests/regression.el
