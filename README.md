@@ -77,6 +77,12 @@ $ make module
 A tar archive called `sqlite3-api-X.Y.tar` will be created. Do a `M-x package-install-file` in Emacs to install that tar archive and 
 you'll all set.
 -->
+For Mac users:
+~~~sh
+$ make HOMEBREW=1
+~~~
+to build the module against sqlite3 installed by homebrew.
+
 If you have sqlite3 installed in a nonstandard location, you can do
 ~~~sh
 $ make INC=/path/to/sqlite3/include LIB="-L/path/to/sqlite3/lib -lsqlite3"
@@ -193,9 +199,9 @@ An example of a callback:
 ~~~el
 (defun print-row (ncols data names)
   (cl-loop for i from 0 to (1- ncols) do
-           (message "[%d]%s->%s" elt (ncols names i) (elt data i))
-           (message "--------------------"))
-  t) ;; t means everything's OK
+           (message "[Column %d/%d]%s=%s" (1+ i) ncols (elt names i) (elt data i)))
+  (message "--------------------")
+  t)
   
 (sqlite3-exec dbh "select * from table_a; select * from table b"
               #'print-row)

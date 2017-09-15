@@ -1,13 +1,17 @@
 CC = gcc
 INC=-I.
 LIB=-lsqlite3
+
+ifeq ($(HOMEBREW), 1)
+ INC=-I/usr/local/opt/sqlite3/include
+ LIB=-L/usr/local/opt/sqlite3/lib -lsqlite3
+endif
+
 CFLAGS=-g3 -Wall -std=c99 $(INC)
 
 EMACS252=$(HOME)/test-emacs/bin/emacs
 EMACS251=$(HOME)/test-emacs-251/bin/emacs
 EMACS253=$(HOME)/test-emacs-253/bin/emacs
-
-SQLITE3_H=$(shell tools/find-sqlite3-h.sh $(INC))
 
 # Melpa package
 PKG=sqlite3-api
@@ -35,23 +39,18 @@ module: $(MODULE).so
 install: module
 	emacsclient -e '(package-install-file "$(MODULE_TAR)")'
 
-#consts.c: $(SQLITE_H)
-#	grep "^#define SQLITE" $(SQLITE3_H) | tools/gen-consts.py > $@
-
 %.so: %.o
 	$(CC) -shared -o $@ $< $(LIB)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -fPIC -c $<
 
-# Emacs 25.2
+# Emacs 25.3
 test:
+	$(EMACS253) -batch -Q -L . -l tests/regression.el
+
+t252:
 	$(EMACS252) -batch -Q -L . -l tests/regression.el
 
-# Emacs 25.1
 t251:
 	$(EMACS251) -batch -Q -L . -l tests/regression.el
-
-# Emacs 25.1
-t253:
-	$(EMACS253) -batch -Q -L . -l tests/regression.el
