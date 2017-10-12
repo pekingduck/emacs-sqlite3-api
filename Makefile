@@ -12,6 +12,7 @@ CFLAGS=-g3 -Wall -std=c99 $(INC)
 EMACS252=$(HOME)/test-emacs/bin/emacs
 EMACS251=$(HOME)/test-emacs-251/bin/emacs
 EMACS253=$(HOME)/test-emacs-253/bin/emacs
+EMACS260=$(HOME)/test-emacs-260/bin/emacs --module-assertions
 
 # Melpa package
 PKG=sqlite3-api
@@ -54,3 +55,6 @@ t252:
 
 t251:
 	$(EMACS251) -batch -Q -L . -l tests/regression.el
+
+t260:
+	$(EMACS260) -batch -Q -L . -l tests/regression.el	
