@@ -13,6 +13,7 @@ EMACS252=$(HOME)/test-emacs/bin/emacs
 EMACS251=$(HOME)/test-emacs-251/bin/emacs
 EMACS253=$(HOME)/test-emacs-253/bin/emacs
 EMACS260=$(HOME)/test-emacs-260/bin/emacs --module-assertions
+EMACS261=/Applications/Emacs.app/Contents/MacOS/Emacs-x86_64-10_10
 
 # Melpa package
 PKG=sqlite3-api
@@ -58,3 +59,6 @@ t251:
 
 t260:
 	$(EMACS260) -batch -Q -L . -l tests/regression.el	
+
+t261:
+	$(EMACS261) -batch -Q -L . -l tests/regression.el
