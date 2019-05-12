@@ -20,7 +20,7 @@ PKG=sqlite3-api
 
 # dynamic module package
 MODULE=$(PKG)
-MODULE_VERSION=0.11
+MODULE_VERSION=0.12
 MODULE_BASENAME=$(MODULE)-$(MODULE_VERSION)
 MODULE_PKG_EL=$(MODULE_BASENAME)/$(MODULE)-pkg.el
 MODULE_TAR=$(MODULE_BASENAME).tar
@@ -40,6 +40,11 @@ module: $(MODULE).so
 
 install: module
 	emacsclient -e '(package-install-file "$(MODULE_TAR)")'
+
+doc: README.md
+
+README.md: README-in.md
+	tools/md-toc.py $< > $@
 
 %.so: %.o
 	$(CC) -shared -o $@ $< $(LIB)

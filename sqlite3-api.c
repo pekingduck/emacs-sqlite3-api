@@ -68,6 +68,10 @@ static emacs_value make_list(emacs_env *env, int n, emacs_value *elts) {
   return env->funcall(env, SYM(env, "list"), n, elts);
 }
 
+static emacs_value make_cons(emacs_env *env, emacs_value *elts) {
+  return env->funcall(env, SYM(env, "cons"), 2, elts);
+}
+
 #if 0
 static void message(emacs_env *env, int log_level, const char *fmt, ...) {
   if (log_level < sqlite3_api_log_level)
@@ -564,6 +568,56 @@ static emacs_value sqlite3_api_column_count(
   return env->make_integer(env, sqlite3_column_count(stmt));
 }
 
+static emacs_value sqlite3_api_fetch_alist(
+    emacs_env *env,
+    ptrdiff_t n,
+    emacs_value *args,
+    void *ptr) {
+  (void)ptr;
+  (void)n;
+
+  if (!env->is_not_nil(env, args[0])) {
+    WARN(env, "%s: statement handle is nil", __func__);
+    return SYM(env, "nil");
+  }
+
+  sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
+  NON_LOCAL_EXIT_CHECK(env);
+
+  /* Create a list to store the results */
+  int ncols = sqlite3_column_count(stmt);
+  emacs_value *elts = malloc(sizeof(emacs_value)*ncols);
+  for (int i = 0; i < ncols; i++) {
+    /* Create a pair for each column */
+    emacs_value cons[2];
+    const char *col_name = sqlite3_column_name(stmt, i);
+
+    cons[0] = env->make_string(env, col_name, strlen(col_name));
+
+    switch(sqlite3_column_type(stmt, i)) {
+      case SQLITE_INTEGER:
+        cons[1] = env->make_integer(env, sqlite3_column_int64(stmt, i));
+        break;
+      case SQLITE_FLOAT:
+        cons[1] = env->make_float(env, sqlite3_column_double(stmt, i));
+        break;
+      case SQLITE_TEXT:
+        cons[1] = env->make_string(
+            env,
+            (const char *)sqlite3_column_text(stmt, i),
+            sqlite3_column_bytes(stmt, i));
+        break;
+      default:
+        cons[1] = SYM(env, "nil");
+    }
+    elts[i] = make_cons(env, cons);
+  }
+
+  emacs_value res = make_list(env, ncols, elts);
+  FREE(elts);
+  return res;
+}
+
 static emacs_value sqlite3_api_fetch(
     emacs_env *env,
     ptrdiff_t n,
@@ -1021,8 +1075,9 @@ int emacs_module_init(struct emacs_runtime *ert) {
       { "sqlite3-column-double", 2, 2, sqlite3_api_column_double,
         "Return double data of a column." },
       { "sqlite3-fetch", 1, 1, sqlite3_api_fetch,
-        "Return a row as a list." },
-
+        "Return row as a list." },
+      { "sqlite3-fetch-alist", 1, 1, sqlite3_api_fetch_alist,
+        "Return row as an alist." },
       { NULL, 0, 0, NULL, NULL }
     };
 
