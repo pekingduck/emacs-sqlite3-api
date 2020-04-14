@@ -1,3 +1,8 @@
+/*
+  Auto-generated 2020-04-14 20:31:47
+  Based on /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sqlite3.h
+*/
+
 defconst(env, "sqlite-version", env->make_string(env, SQLITE_VERSION, strlen(SQLITE_VERSION)));
 defconst(env, "sqlite-version-number", env->make_integer(env, SQLITE_VERSION_NUMBER));
 defconst(env, "sqlite-source-id", env->make_string(env, SQLITE_SOURCE_ID, strlen(SQLITE_SOURCE_ID)));
@@ -180,6 +185,8 @@ defconst(env, "sqlite-fcntl-begin-atomic-write", env->make_integer(env, SQLITE_F
 defconst(env, "sqlite-fcntl-commit-atomic-write", env->make_integer(env, SQLITE_FCNTL_COMMIT_ATOMIC_WRITE));
 defconst(env, "sqlite-fcntl-rollback-atomic-write", env->make_integer(env, SQLITE_FCNTL_ROLLBACK_ATOMIC_WRITE));
 defconst(env, "sqlite-fcntl-lock-timeout", env->make_integer(env, SQLITE_FCNTL_LOCK_TIMEOUT));
+defconst(env, "sqlite-fcntl-data-version", env->make_integer(env, SQLITE_FCNTL_DATA_VERSION));
+defconst(env, "sqlite-fcntl-size-limit", env->make_integer(env, SQLITE_FCNTL_SIZE_LIMIT));
 defconst(env, "sqlite-get-lockproxyfile", env->make_integer(env, SQLITE_GET_LOCKPROXYFILE));
 defconst(env, "sqlite-set-lockproxyfile", env->make_integer(env, SQLITE_SET_LOCKPROXYFILE));
 defconst(env, "sqlite-last-errno", env->make_integer(env, SQLITE_LAST_ERRNO));
@@ -218,6 +225,7 @@ defconst(env, "sqlite-config-pmasz", env->make_integer(env, SQLITE_CONFIG_PMASZ)
 defconst(env, "sqlite-config-stmtjrnl-spill", env->make_integer(env, SQLITE_CONFIG_STMTJRNL_SPILL));
 defconst(env, "sqlite-config-small-malloc", env->make_integer(env, SQLITE_CONFIG_SMALL_MALLOC));
 defconst(env, "sqlite-config-sorterref-size", env->make_integer(env, SQLITE_CONFIG_SORTERREF_SIZE));
+defconst(env, "sqlite-config-memdb-maxsize", env->make_integer(env, SQLITE_CONFIG_MEMDB_MAXSIZE));
 defconst(env, "sqlite-dbconfig-maindbname", env->make_integer(env, SQLITE_DBCONFIG_MAINDBNAME));
 defconst(env, "sqlite-dbconfig-lookaside", env->make_integer(env, SQLITE_DBCONFIG_LOOKASIDE));
 defconst(env, "sqlite-dbconfig-enable-fkey", env->make_integer(env, SQLITE_DBCONFIG_ENABLE_FKEY));
@@ -228,6 +236,8 @@ defconst(env, "sqlite-dbconfig-no-ckpt-on-close", env->make_integer(env, SQLITE_
 defconst(env, "sqlite-dbconfig-enable-qpsg", env->make_integer(env, SQLITE_DBCONFIG_ENABLE_QPSG));
 defconst(env, "sqlite-dbconfig-trigger-eqp", env->make_integer(env, SQLITE_DBCONFIG_TRIGGER_EQP));
 defconst(env, "sqlite-dbconfig-reset-database", env->make_integer(env, SQLITE_DBCONFIG_RESET_DATABASE));
+defconst(env, "sqlite-dbconfig-defensive", env->make_integer(env, SQLITE_DBCONFIG_DEFENSIVE));
+defconst(env, "sqlite-dbconfig-writable-schema", env->make_integer(env, SQLITE_DBCONFIG_WRITABLE_SCHEMA));
 defconst(env, "sqlite-dbconfig-max", env->make_integer(env, SQLITE_DBCONFIG_MAX));
 defconst(env, "sqlite-deny", env->make_integer(env, SQLITE_DENY));
 defconst(env, "sqlite-ignore", env->make_integer(env, SQLITE_IGNORE));
@@ -282,6 +292,8 @@ defconst(env, "sqlite-limit-variable-number", env->make_integer(env, SQLITE_LIMI
 defconst(env, "sqlite-limit-trigger-depth", env->make_integer(env, SQLITE_LIMIT_TRIGGER_DEPTH));
 defconst(env, "sqlite-limit-worker-threads", env->make_integer(env, SQLITE_LIMIT_WORKER_THREADS));
 defconst(env, "sqlite-prepare-persistent", env->make_integer(env, SQLITE_PREPARE_PERSISTENT));
+defconst(env, "sqlite-prepare-normalize", env->make_integer(env, SQLITE_PREPARE_NORMALIZE));
+defconst(env, "sqlite-prepare-no-vtab", env->make_integer(env, SQLITE_PREPARE_NO_VTAB));
 defconst(env, "sqlite-integer", env->make_integer(env, SQLITE_INTEGER));
 defconst(env, "sqlite-float", env->make_integer(env, SQLITE_FLOAT));
 defconst(env, "sqlite-blob", env->make_integer(env, SQLITE_BLOB));
@@ -293,8 +305,6 @@ defconst(env, "sqlite-utf16", env->make_integer(env, SQLITE_UTF16));
 defconst(env, "sqlite-any", env->make_integer(env, SQLITE_ANY));
 defconst(env, "sqlite-utf16-aligned", env->make_integer(env, SQLITE_UTF16_ALIGNED));
 defconst(env, "sqlite-deterministic", env->make_integer(env, SQLITE_DETERMINISTIC));
-defconst(env, "sqlite-static", env->make_integer(env, SQLITE_STATIC));
-defconst(env, "sqlite-transient", env->make_integer(env, SQLITE_TRANSIENT));
 defconst(env, "sqlite-index-scan-unique", env->make_integer(env, SQLITE_INDEX_SCAN_UNIQUE));
 defconst(env, "sqlite-index-constraint-eq", env->make_integer(env, SQLITE_INDEX_CONSTRAINT_EQ));
 defconst(env, "sqlite-index-constraint-gt", env->make_integer(env, SQLITE_INDEX_CONSTRAINT_GT));
@@ -310,6 +320,7 @@ defconst(env, "sqlite-index-constraint-isnot", env->make_integer(env, SQLITE_IND
 defconst(env, "sqlite-index-constraint-isnotnull", env->make_integer(env, SQLITE_INDEX_CONSTRAINT_ISNOTNULL));
 defconst(env, "sqlite-index-constraint-isnull", env->make_integer(env, SQLITE_INDEX_CONSTRAINT_ISNULL));
 defconst(env, "sqlite-index-constraint-is", env->make_integer(env, SQLITE_INDEX_CONSTRAINT_IS));
+defconst(env, "sqlite-index-constraint-function", env->make_integer(env, SQLITE_INDEX_CONSTRAINT_FUNCTION));
 defconst(env, "sqlite-mutex-fast", env->make_integer(env, SQLITE_MUTEX_FAST));
 defconst(env, "sqlite-mutex-recursive", env->make_integer(env, SQLITE_MUTEX_RECURSIVE));
 defconst(env, "sqlite-mutex-static-master", env->make_integer(env, SQLITE_MUTEX_STATIC_MASTER));
@@ -340,6 +351,7 @@ defconst(env, "sqlite-testctrl-reserve", env->make_integer(env, SQLITE_TESTCTRL_
 defconst(env, "sqlite-testctrl-optimizations", env->make_integer(env, SQLITE_TESTCTRL_OPTIMIZATIONS));
 defconst(env, "sqlite-testctrl-iskeyword", env->make_integer(env, SQLITE_TESTCTRL_ISKEYWORD));
 defconst(env, "sqlite-testctrl-scratchmalloc", env->make_integer(env, SQLITE_TESTCTRL_SCRATCHMALLOC));
+defconst(env, "sqlite-testctrl-internal-functions", env->make_integer(env, SQLITE_TESTCTRL_INTERNAL_FUNCTIONS));
 defconst(env, "sqlite-testctrl-localtime-fault", env->make_integer(env, SQLITE_TESTCTRL_LOCALTIME_FAULT));
 defconst(env, "sqlite-testctrl-explain-stmt", env->make_integer(env, SQLITE_TESTCTRL_EXPLAIN_STMT));
 defconst(env, "sqlite-testctrl-once-reset-threshold", env->make_integer(env, SQLITE_TESTCTRL_ONCE_RESET_THRESHOLD));

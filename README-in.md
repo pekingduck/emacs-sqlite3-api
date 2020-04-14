@@ -1,4 +1,4 @@
-# SQLite3 API v0.11 for Emacs 25+
+# SQLite3 API for Emacs 25+
 `sqlite3-api` is a dynamic module for GNU Emacs 25+ that provides 
 direct access to the core SQLite3 C API from Emacs Lisp.
 ~~~el
@@ -25,7 +25,7 @@ direct access to the core SQLite3 C API from Emacs Lisp.
 While this module provides only 14 functions (vs [200+ in the C API](https://sqlite.org/c3ref/funclist.html)), it should satisfy most
 users' needs.
 
-The current version is v0.11.
+The current version is v0.12.
 
 This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
@@ -37,28 +37,31 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 
 It's been tested on macOS (Sierra) and CentOS 7.
 ## Installation
+### Manual
 ~~~sh
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
 $ make
 $ cp sqlite3-api.so /your/elisp/load-path/
 ~~~
-<!--
+
+### Package
 ~~~sh
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
 $ make module
+$
 ~~~
 A tar archive called `sqlite3-api-X.Y.tar` will be created. Do a `M-x package-install-file` in Emacs to install that tar archive and 
 you'll all set.
--->
+
 For Mac users:
 ~~~sh
 $ make HOMEBREW=1
 ~~~
 to build the module against sqlite3 installed by homebrew.
 
-If you have sqlite3 installed in a nonstandard location, you can do
+If you have sqlite3 installed in a nonstandard location:
 ~~~sh
 $ make INC=/path/to/sqlite3/include LIB="-L/path/to/sqlite3/lib -lsqlite3"
 ~~~
@@ -237,6 +240,10 @@ Note: Column number starts from 0.
 (sqlite3-column-double statement-handle column-no)
 ~~~
 The above functions retrieve data of the specified column.
+~~~el
+(sqlite3-column-name statement-handle column-no)
+~~~
+This function returns the column name of the specified column.
 
 Note: You can call `sqlite3-column-xxx` on a column even 
 if `sqlite3-column-type` returns `sqlite-yyy`: the SQLite3 engine will
@@ -257,6 +264,14 @@ Example:
 `sqlite3-fetch` is not part of the official API but provided for 
 convenience. It retrieves the current row as a 
 list without having to deal with sqlite3-column-* explicitly.
+
+### sqlite3-fetch-alist
+~~~el
+(sqlite3-fetch-alist statement-handle)
+~~~
+`sqlite3-fetch-alist` is not part of the official API but provided for 
+convenience. It retrieves the current row as an
+alist in the form of `(("col_name1" . value1) ("col_name2" . value2) ..)`
 
 ## Transaction Support
 Use `sqlite3-exec` to start, commit and rollback a transaction:
@@ -299,6 +314,10 @@ For integers > 61 bits you can retrieve them as text as a workaround.
 The code is licensed under the [GNU GPL v3](https://www.gnu.org/licenses/gpl-3.0.html).
 
 ## Changelog
+*v0.12 - 2019-05-12
+- `sqlite3-fetch-alist` added
+- Fixed a compilation problem on macOS Mojave
+
 *v0.11 - 2017-09-14*
 - `sqlite3-finalize` now accepts multiple handles.
 
