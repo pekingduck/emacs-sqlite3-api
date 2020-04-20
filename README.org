@@ -33,14 +33,31 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 
 ** Table of Contents
    :PROPERTIES:
-   :TOC:      :include all :depth 3 :ignore (this)
+   :TOC:      :include all :depth 4 :ignore (this)
    :END:
 
 :CONTENTS:
 - [[#sqlite3-api-for-emacs-25][SQLite3 API for Emacs 25+]]
   - [[#requirements][Requirements]]
   - [[#installation][Installation]]
+    - [[#manual][Manual]]
+    - [[#package][Package]]
   - [[#api][API]]
+    - [[#sqlite3-open][sqlite3-open]]
+    - [[#sqlite3-close][sqlite3-close]]
+    - [[#sqlite3-prepare][sqlite3-prepare]]
+    - [[#sqlite3-finalize][sqlite3-finalize]]
+    - [[#sqlite3-step][sqlite3-step]]
+    - [[#sqlite3-changes][sqlite3-changes]]
+    - [[#sqlite3-reset][sqlite3-reset]]
+    - [[#sqlite3-last-insert-rowid][sqlite3-last-insert-rowid]]
+    - [[#sqlite3-get-autocommit][sqlite3-get-autocommit]]
+    - [[#sqlite3-exec][sqlite3-exec]]
+    - [[#sqlite3-bind-][sqlite3-bind-*]]
+    - [[#sqlite3-bind-multi][sqlite3-bind-multi]]
+    - [[#sqlite3-column-][sqlite3-column-*]]
+    - [[#sqlite3-fetch][sqlite3-fetch]]
+    - [[#sqlite3-fetch-alist][sqlite3-fetch-alist]]
   - [[#transaction-support][Transaction Support]]
   - [[#error-handling][Error Handling]]
   - [[#a-note-on-garbage-collection][A Note on Garbage Collection]]
