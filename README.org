@@ -31,6 +31,25 @@ The current version is v0.13.
 
 This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
+** Table of Contents
+   :PROPERTIES:
+   :TOC:      :include all :depth 3 :ignore (this)
+   :END:
+
+:CONTENTS:
+- [[#sqlite3-api-for-emacs-25][SQLite3 API for Emacs 25+]]
+  - [[#requirements][Requirements]]
+  - [[#installation][Installation]]
+  - [[#api][API]]
+  - [[#transaction-support][Transaction Support]]
+  - [[#error-handling][Error Handling]]
+  - [[#a-note-on-garbage-collection][A Note on Garbage Collection]]
+  - [[#known-problems][Known Problems]]
+  - [[#license][License]]
+  - [[#changelog][Changelog]]
+  - [[#useful-links-for-writing-dynamic-modules][Useful Links for Writing Dynamic Modules]]
+:END:
+
 ** Requirements
 - Emacs 25.1 or above, compiled with module support (~./configure --with-modules~)
 - SQLite3 v3.16.0 or above. Older versions might work but I have not personally tested those.
@@ -103,7 +122,7 @@ In elisp they are in lowercase and words are separated by "-" instead of
 #+END_SRC
 Open the database file and return a database handle.
 
-This function calls [[https://www.sqlite.org/c3ref/open.html][~sqlite3_open_v2()~]] internally and raises ~'db-error~ in case of error.
+This function calls [[https://www.sqlite.org/c3ref/open.html][sqlite3_open_v2()]] internally and raises ~db-error~ in case of error.
 
 *flag1*, *flag2*.... will be ORed together.
 *** sqlite3-close
@@ -117,7 +136,7 @@ Close the database file.
 #+END_SRC
 Compile the supplied SQL statement and return a statement handle.
 
-This function calls [[https://www.sqlite.org/c3ref/prepare.html][~sqlite3_prepare_v2()~]] internally and raises 'sql-error in case of error.
+This function calls [[https://www.sqlite.org/c3ref/prepare.html][sqlite3_prepare_v2()]] internally and raises 'sql-error in case of error.
 *** sqlite3-finalize
 #+BEGIN_SRC emacs-lisp :eval no :exports code
 (sqlite3-finalize statement-handle1 statement-handle2 ...)
@@ -172,9 +191,9 @@ The callback function, if supplied, is invoked for *each row* and should accept 
  3. the third one is a list of column names. 
  
 To signal an error condition inside the callback, return ~nil~.
-~sqlite3_exec()~ will stop the execution and raise 'db-error.
+~sqlite3_exec()~ will stop the execution and raise ~db-error~.
 
-Raises db-error in case of error.
+Raises ~db-error~ in case of error.
 
 An example of a callback:
 #+BEGIN_SRC emacs-lisp :eval no :exports code
@@ -283,7 +302,7 @@ Use ~sqlite3-exec~ to start, commit and rollback a transaction:
 (sqlite3-exec dbh "commit")
 (sqlite3-exec dbh "rollback")
 #+END_SRC
-See Error Handling below on how to use the [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Handling-Errors.html][~condition-case~]] form to handle rollback.
+See Error Handling below on how to use the [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Handling-Errors.html][condition-case]] form to handle rollback.
 ** Error Handling
 Currently two error symbols are defined in ~sqlite3-api.el~:
 1. ~sql-error~ is raised by ~sqlite3-prepare~
