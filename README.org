@@ -353,8 +353,8 @@ For integers > 61 bits you can retrieve them as text as a workaround.
 The code is licensed under the [[https://www.gnu.org/licenses/gpl-3.0.html][GNU GPL v3]].
 
 ** Changelog
-*v0.31 - 2020-04-20*
-- Rewrote README in orgmode.
+*v0.13 - 2020-04-20*
+- Rewrote README in .org format
 
 *v0.12 - 2019-05-12*
 - ~sqlite3-fetch-alist~ added
