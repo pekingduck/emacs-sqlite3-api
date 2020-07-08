@@ -1,15 +1,15 @@
-CC = gcc
-INC=-I.
-LIB=-lsqlite3
+CC  ?= gcc
+INC ?= -I.
+LIB ?= -lsqlite3
 
 ifeq ($(HOMEBREW), 1)
  INC=-I/usr/local/opt/sqlite3/include
  LIB=-L/usr/local/opt/sqlite3/lib -lsqlite3
 endif
 
-CFLAGS=-g3 -Wall -std=c99 $(INC)
+CFLAGS ?= -g3 -Wall -std=c99 $(INC)
 
-EMACS=/Applications/Emacs.app/Contents/MacOS/Emacs-x86_64-10_14
+EMACS ?= /Applications/Emacs.app/Contents/MacOS/Emacs-x86_64-10_14
 
 # Melpa package
 PKG=sqlite3-api
