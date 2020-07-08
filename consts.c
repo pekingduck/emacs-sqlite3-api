@@ -1,6 +1,21 @@
 /*
-  Auto-generated 2020-04-14 20:31:47
-  Based on /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/sqlite3.h
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
+  Auto-generated 2020-07-08 18:50:03
+  Based on https://sqlite.org/c3ref/constlist.html
 */
 
 defconst(env, "sqlite-version", env->make_string(env, SQLITE_VERSION, strlen(SQLITE_VERSION)));
@@ -124,11 +139,6 @@ defconst(env, "sqlite-open-fullmutex", env->make_integer(env, SQLITE_OPEN_FULLMU
 defconst(env, "sqlite-open-sharedcache", env->make_integer(env, SQLITE_OPEN_SHAREDCACHE));
 defconst(env, "sqlite-open-privatecache", env->make_integer(env, SQLITE_OPEN_PRIVATECACHE));
 defconst(env, "sqlite-open-wal", env->make_integer(env, SQLITE_OPEN_WAL));
-defconst(env, "sqlite-open-fileprotection-complete", env->make_integer(env, SQLITE_OPEN_FILEPROTECTION_COMPLETE));
-defconst(env, "sqlite-open-fileprotection-completeunlessopen", env->make_integer(env, SQLITE_OPEN_FILEPROTECTION_COMPLETEUNLESSOPEN));
-defconst(env, "sqlite-open-fileprotection-completeuntilfirstuserauthentication", env->make_integer(env, SQLITE_OPEN_FILEPROTECTION_COMPLETEUNTILFIRSTUSERAUTHENTICATION));
-defconst(env, "sqlite-open-fileprotection-none", env->make_integer(env, SQLITE_OPEN_FILEPROTECTION_NONE));
-defconst(env, "sqlite-open-fileprotection-mask", env->make_integer(env, SQLITE_OPEN_FILEPROTECTION_MASK));
 defconst(env, "sqlite-iocap-atomic", env->make_integer(env, SQLITE_IOCAP_ATOMIC));
 defconst(env, "sqlite-iocap-atomic512", env->make_integer(env, SQLITE_IOCAP_ATOMIC512));
 defconst(env, "sqlite-iocap-atomic1k", env->make_integer(env, SQLITE_IOCAP_ATOMIC1K));
@@ -187,9 +197,6 @@ defconst(env, "sqlite-fcntl-rollback-atomic-write", env->make_integer(env, SQLIT
 defconst(env, "sqlite-fcntl-lock-timeout", env->make_integer(env, SQLITE_FCNTL_LOCK_TIMEOUT));
 defconst(env, "sqlite-fcntl-data-version", env->make_integer(env, SQLITE_FCNTL_DATA_VERSION));
 defconst(env, "sqlite-fcntl-size-limit", env->make_integer(env, SQLITE_FCNTL_SIZE_LIMIT));
-defconst(env, "sqlite-get-lockproxyfile", env->make_integer(env, SQLITE_GET_LOCKPROXYFILE));
-defconst(env, "sqlite-set-lockproxyfile", env->make_integer(env, SQLITE_SET_LOCKPROXYFILE));
-defconst(env, "sqlite-last-errno", env->make_integer(env, SQLITE_LAST_ERRNO));
 defconst(env, "sqlite-access-exists", env->make_integer(env, SQLITE_ACCESS_EXISTS));
 defconst(env, "sqlite-access-readwrite", env->make_integer(env, SQLITE_ACCESS_READWRITE));
 defconst(env, "sqlite-access-read", env->make_integer(env, SQLITE_ACCESS_READ));

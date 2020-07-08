@@ -37,23 +37,12 @@ module: $(MODULE).so
 install: module
 	emacsclient -e '(package-install-file "$(MODULE_TAR)")'
 
-doc: README.md
-
-# create constants based on sqlite3.h
-consts:
-	tools/gen-consts.sh > consts.c
-
-# Create README.md
-# md-toc.py inserts a TOC into the markdown file
-README.md: README-in.md
-	tools/md-toc.py $< > $@
-
 %.so: %.o
 	$(CC) -shared -o $@ $< $(LIB)
 
 %.o: %.c
 	$(CC) $(CFLAGS) -fPIC -c $<
 
-# Emacs 25.3
+# Regression test
 test:
 	$(EMACS) -batch -Q -L . -l tests/regression.el

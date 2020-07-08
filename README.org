@@ -27,7 +27,7 @@ direct access to the core SQLite3 C API from Emacs Lisp.
 While this module provides only 14 functions (vs [[https://sqlite.org/c3ref/funclist.html][200+ in the C API]]), it should satisfy most
 users' needs.
 
-The current version is v0.13.
+The current version is v0.14.
 
 This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
@@ -36,6 +36,8 @@ This is an alpha release so it might crash your Emacs. Save your work before you
    :TOC:      :include all :depth 4 :ignore (this)
    :END:
 
+# M-x org-make-toc to update the TOC 
+# Requires https://github.com/alphapapa/org-make-toc
 :CONTENTS:
 - [[#sqlite3-api-for-emacs-25][SQLite3 API for Emacs 25+]]
   - [[#requirements][Requirements]]
@@ -63,6 +65,7 @@ This is an alpha release so it might crash your Emacs. Save your work before you
   - [[#a-note-on-garbage-collection][A Note on Garbage Collection]]
   - [[#known-problems][Known Problems]]
   - [[#license][License]]
+  - [[#contributors][Contributors]]
   - [[#changelog][Changelog]]
   - [[#useful-links-for-writing-dynamic-modules][Useful Links for Writing Dynamic Modules]]
 :END:
@@ -90,7 +93,7 @@ $ make module
 #+END_SRC
 
 A tar archive called ~sqlite3-api-X.Y.tar~ will be created. Do a ~M-x package-install-file~ in Emacs to install that tar archive and 
-you'll all set.
+you're all set.
 
 For Mac users:
 #+BEGIN_SRC sh :eval no :exports code
@@ -352,7 +355,12 @@ For integers > 61 bits you can retrieve them as text as a workaround.
 ** License
 The code is licensed under the [[https://www.gnu.org/licenses/gpl-3.0.html][GNU GPL v3]].
 
+** Contributors
+- [[https://github.com/tarsius][Jonas Bernoulli]] - Melpa package
 ** Changelog
+*v0.14 - 2020-07-08*
+- Added sqlite3.el (melpa)
+
 *v0.13 - 2020-04-20*
 - Rewrote README in .org format
 

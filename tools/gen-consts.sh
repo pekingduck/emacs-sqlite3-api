@@ -1,15 +1,32 @@
 #!/bin/bash
-# locate the path of sqlite3.h
-# Take -I... as the only argument
 DIR=$(dirname $0)
 NOW=$(date '+%Y-%m-%d %H:%M:%S')
+URL=https://sqlite.org/c3ref/constlist.html
 SQLITE3_H=$(echo '#include <sqlite3.h>' | gcc $* -x c -H -fsyntax-only - 2>&1 | grep '^\. ' | cut -f2 -d' ')
 
 cat<<EOF
 /*
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/*
   Auto-generated $NOW
-  Based on $SQLITE3_H
+  Based on $URL
 */
 
 EOF
-grep '^#define SQLITE_' $SQLITE3_H | grep -v 'SQLITE_TRANSIENT' | grep -v SQLITE_STATIC | $DIR/gen-consts.py
+
+curl -s $URL | pandoc -t html -t plain | grep "^SQLITE_" | grep -v SCANSTAT | grep -v SQLITE_STATIC > $DIR/useful.txt
+grep '^#define SQLITE_' $SQLITE3_H | grep -v 'SQLITE_TRANSIENT' | grep -v SQLITE_STATIC | $DIR/gen-consts.py $DIR/useful.txt
+rm -f $DIR/useful.txt
