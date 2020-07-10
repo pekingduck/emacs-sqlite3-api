@@ -1,0 +1,24 @@
+#+OPTIONS: ^:nil
+* Notes to self
+
+Run src_sh[:eval no :exports code]{make} to generate src_sh[:eval no :exports
+code]{consts.c} with the Homebrew (latest) version of sqlite3.h on Mac. 
+
+Requires curl, Pandoc and Python.
+
+Not everything in sqlite3.h is required by the Emacs module. The codes listed below are filtered out.
+
+- Anything not present on https://sqlite.org/c3ref/constlist.html
+- SQLITE_TRANSIENT, SQLITE_STATIC, SQLITE_SCANSTAT_*
+
+Definitions in src_sh[:eval no :exports code]{consts.c} are guarded by
+src_c[:eval no :exports code]{#ifdef} in case the local installation of (older)
+SQLite doesn't have them defined. E.g.
+
+#+BEGIN_SRC c :eval no :exports code
+#ifdef SQLITE_NOTADB
+defconst(env, "sqlite-notadb", env->make_integer(env, SQLITE_NOTADB));
+#endif
+#+END_SRC
+
+Regenerate src_sh[:eval no :exports code]{consts.c} whenever a new version is SQLite is available.

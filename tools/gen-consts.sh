@@ -3,6 +3,7 @@ DIR=$(dirname $0)
 NOW=$(date '+%Y-%m-%d %H:%M:%S')
 URL=https://sqlite.org/c3ref/constlist.html
 SQLITE3_H=$(echo '#include <sqlite3.h>' | gcc $* -x c -H -fsyntax-only - 2>&1 | grep '^\. ' | cut -f2 -d' ')
+MASTER=master.txt
 
 cat<<EOF
 /*
@@ -27,6 +28,6 @@ cat<<EOF
 
 EOF
 
-curl -s $URL | pandoc -t html -t plain | grep "^SQLITE_" | grep -v SCANSTAT | grep -v SQLITE_STATIC > $DIR/useful.txt
-grep '^#define SQLITE_' $SQLITE3_H | grep -v 'SQLITE_TRANSIENT' | grep -v SQLITE_STATIC | $DIR/gen-consts.py $DIR/useful.txt
-rm -f $DIR/useful.txt
+curl -s $URL | pandoc -t html -t plain | grep "^SQLITE_" | grep -v SCANSTAT | grep -v SQLITE_STATIC | grep -v SQLITE_TRANSIENT > $DIR/$MASTER
+grep '^#define SQLITE_' $SQLITE3_H | $DIR/gen-consts.py $DIR/$MASTER
+rm -f $DIR/$MASTER

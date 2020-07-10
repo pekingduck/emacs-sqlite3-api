@@ -46,3 +46,6 @@ install: module
 # Regression test
 test:
 	$(EMACS) -batch -Q -L . -l tests/regression.el
+
+test-consts:
+	$(EMACS) -batch -Q -L . -l tests/consts.el
