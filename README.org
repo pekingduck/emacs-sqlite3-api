@@ -1,9 +1,10 @@
 #+OPTIONS: ^:nil
 * SQLite3 API for Emacs 25+
-~sqlite3-api~ is a dynamic module for GNU Emacs 25+ that provides 
-direct access to the core SQLite3 C API from Emacs Lisp.
-#+BEGIN_SRC emacs-lisp :eval no :exports code
-(require 'sqlite3-api)
+** Introduction
+ ~sqlite3~ is a dynamic module for GNU Emacs 25+ that provides 
+ direct access to the core SQLite3 C API from Emacs Lisp.
+ #+BEGIN_SRC emacs-lisp :eval no :exports code
+(require 'sqlite3)
 
 (setq dbh (sqlite3-open "person.sqlite3" sqlite-open-readwrite sqlite-open-create))
 (sqlite3-exec dbh "create table temp (name text, age integer)")
@@ -22,14 +23,14 @@ direct access to the core SQLite3 C API from Emacs Lisp.
     (message "name: %s, age: %d" name age)))
 (sqlite3-finalize stmt)
 (sqlite3-close dbh)
-#+END_SRC
+ #+END_SRC
 
-While this module provides only 14 functions (vs [[https://sqlite.org/c3ref/funclist.html][200+ in the C API]]), it should satisfy most
-users' needs.
+ While this module provides only 14 functions (vs [[https://sqlite.org/c3ref/funclist.html][200+ in the C API]]), it should satisfy most
+ users' needs.
 
-The current version is v0.14.
+ The current version is v0.15.
 
-This is an alpha release so it might crash your Emacs. Save your work before you try it out!
+ This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
 ** Table of Contents
    :PROPERTIES:
@@ -40,10 +41,12 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 # Requires https://github.com/alphapapa/org-make-toc
 :CONTENTS:
 - [[#sqlite3-api-for-emacs-25][SQLite3 API for Emacs 25+]]
+  - [[#introduction][Introduction]]
   - [[#requirements][Requirements]]
   - [[#installation][Installation]]
+    - [[#melpa][Melpa]]
+    - [[#local-package][Local Package]]
     - [[#manual][Manual]]
-    - [[#package][Package]]
   - [[#api][API]]
     - [[#sqlite3-open][sqlite3-open]]
     - [[#sqlite3-close][sqlite3-close]]
@@ -71,35 +74,44 @@ This is an alpha release so it might crash your Emacs. Save your work before you
 :END:
 
 ** Requirements
-- Emacs 25.1 or above, compiled with module support (~./configure --with-modules~)
+- Emacs 25.1 or above, compiled with module support (~./configure
+  --with-modules~). Emacs 27.1 supports dynamic modules by default unless you
+  explicitly disable it.
 - SQLite3 v3.16.0 or above. Older versions might work but I have not personally tested those.
 - A C99 compiler
 
 It's been tested on macOS (Catalina) and CentOS 7.
 ** Installation
-*** Manual
-#+BEGIN_SRC sh :eval no :exports code
-$ git co https://github.com/pekingduck/emacs-sqlite3-api
-$ cd emacs-sqlite3-api
-$ make
-$ cp sqlite3-api.so /your/elisp/load-path/
+*** Melpa
+You can now install the package via Melpa (package name: ~sqlite3~).
+
+The first time you ~(require 'sqlite3)~, you will be asked to confirm the
+compilation of the dynamic module:
+
+#+BEGIN_SRC text :eval no :exports code
+sqlite3-api module must be build.  Do so now?
 #+END_SRC
 
-*** Package
+After the module is successfully compiled, you should ~(unload-feature
+'sqlite3)~ and then ~(require sqlite3)~ to reload properly.
+
+You can ~(eval sqlite-ok)~ to test the installation. You should get a 0.
+
+*** Local Package
 #+BEGIN_SRC sh :eval no :exports code
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
 $ make module
 #+END_SRC
 
-A tar archive called ~sqlite3-api-X.Y.tar~ will be created. Do a ~M-x package-install-file~ in Emacs to install that tar archive and 
+A tar archive called ~sqlite3-X.Y.tar~ will be created. Do a ~M-x package-install-file~ in Emacs to install that tar archive and 
 you're all set.
 
 For Mac users:
 #+BEGIN_SRC sh :eval no :exports code
 $ make HOMEBREW=1
 #+END_SRC
-to build the module against sqlite3 installed by homebrew.
+to build the module against sqlite3 installed by Homebrew.
 
 If you have sqlite3 installed in a nonstandard location:
 #+BEGIN_SRC sh :eval no :exports code
@@ -111,11 +123,27 @@ Currently there's no way to reload a dynamic module in Emacs
 If you are updating from an older version, you'll need to restart Emacs
 for the new module to take effect.
 
+2020-09-16 Update: I can't find it in ~etc/NEWS~, but it seems Emacs 27.1
+supports unloading of dynamic modules. To unload ~sqlite3~ properly:
+
+#+BEGIN_SRC emacs-lisp :eval no :exports code
+(unload-feature 'sqlite3)
+(unload-feature 'sqlite3-api)
+#+END_SRC
+
+*** Manual
+#+BEGIN_SRC sh :eval no :exports code
+$ git co https://github.com/pekingduck/emacs-sqlite3-api
+$ cd emacs-sqlite3-api
+$ make
+$ cp sqlite3.el sqlite3-api.so /your/elisp/load-path/
+#+END_SRC
+
 ** API
 To load the package, put the following in your ~.emacs~:
 
 #+BEGIN_SRC emacs-lisp :eval no :exports code
-(require 'sqlite3-api)
+(require 'sqlite3)
 #+END_SRC
 
 An application will typically use sqlite3_open() to create a single database connection during initialization. 
@@ -128,7 +156,9 @@ To run an SQL statement, the application follows these steps:
 1. Destroy the prepared statement using sqlite3_finalize().
 1. Close the database using sqlite3_close().
 
-[[https://www.sqlite.org/rescode.html][SQlite3 constants]], defined in sqlite3.h, are things such as numeric result codes from various interfaces (ex: ~SQLITE_OK~) or flags passed into functions to control behavior (ex: ~SQLITE_OPEN_READONLY~).
+[[https://www.sqlite.org/rescode.html][SQlite3 constants]], defined in sqlite3.h, are things such as numeric result codes
+from various interfaces (ex: ~SQLITE_OK~) or flags passed into functions to
+control behavior (ex: ~SQLITE_OPEN_READONLY~).
 
 In elisp they are in lowercase and words are separated by "-" instead of
 "_". For example, ~SQLITE_OK~ would be ~sqlite-ok~.
@@ -324,7 +354,7 @@ Use ~sqlite3-exec~ to start, commit and rollback a transaction:
 #+END_SRC
 See Error Handling below on how to use the [[https://www.gnu.org/software/emacs/manual/html_node/elisp/Handling-Errors.html][condition-case]] form to handle rollback.
 ** Error Handling
-Currently two error symbols are defined in ~sqlite3-api.el~:
+Currently two error symbols are defined in ~sqlite3.el~:
 1. ~sql-error~ is raised by ~sqlite3-prepare~
 2. ~db-error~ is raised by ~sqlite3-open~ and ~sqlite3-exec~
 
@@ -358,6 +388,9 @@ The code is licensed under the [[https://www.gnu.org/licenses/gpl-3.0.html][GNU 
 ** Contributors
 - [[https://github.com/tarsius][Jonas Bernoulli]] - Melpa package
 ** Changelog
+*v0.15 - 2020-09-16*
+- Fixed a bug in ~sqlite3-bind-multi~  under Emacs 27.1
+
 *v0.14 - 2020-07-08*
 - Added sqlite3.el (melpa)
 

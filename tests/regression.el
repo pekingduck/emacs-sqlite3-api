@@ -14,7 +14,7 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require 'sqlite3-api)
+(require 'sqlite3)
 (require 'cl-lib)
 
 (ert-deftest sqlite3-test-create-db ()

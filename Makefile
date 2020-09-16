@@ -12,25 +12,25 @@ CFLAGS ?= -g3 -Wall -std=c99 $(INC)
 EMACS ?= /Applications/Emacs.app/Contents/MacOS/Emacs-x86_64-10_14
 
 # Melpa package
-PKG=sqlite3-api
+PKG=sqlite3
 
 # dynamic module package
 MODULE=$(PKG)
-MODULE_VERSION=0.14
+MODULE_VERSION=0.15
 MODULE_BASENAME=$(MODULE)-$(MODULE_VERSION)
 MODULE_PKG_EL=$(MODULE_BASENAME)/$(MODULE)-pkg.el
 MODULE_TAR=$(MODULE_BASENAME).tar
 
-all: $(MODULE).so 
+all: $(MODULE)-api.so 
 
 clean:
 	rm -rf *.so *.o *.tar $(MODULE_BASENAME)
 
 # File "MODULE" is read by (sqlite3-api-install-dynamic-module)
 # during installation
-module: $(MODULE).so
+module: $(MODULE)-api.so
 	mkdir -p $(MODULE_BASENAME)
-	cp $(MODULE).so $(MODULE_BASENAME)
+	cp $(MODULE).el $(MODULE)-api.so $(MODULE_BASENAME)
 	echo "(define-package \"$(MODULE)\" \"$(MODULE_VERSION)\" \"SQLite3 API dynamic module\")" > $(MODULE_PKG_EL)
 	tar cvf $(MODULE_TAR) $(MODULE_BASENAME)
 
