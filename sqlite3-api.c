@@ -28,11 +28,11 @@ int plugin_is_GPL_compatible;
   }
 #define SYM(env, sym) (env)->intern((env), sym)
 #define IS_INTEGER(env, val) \
-  (env)->type_of((env), (val)) == (env)->intern((env), "integer")
+  (env)->eq((env), (env)->type_of((env), (val)), (env)->intern((env), "integer"))
 #define IS_FLOAT(env, val) \
-  (env)->type_of((env), (val)) == (env)->intern((env), "float")
+  (env)->eq((env), (env)->type_of((env), (val)), (env)->intern((env), "float"))
 #define IS_STRING(env, val) \
-  (env)->type_of((env), (val)) == (env)->intern((env), "string")
+  (env)->eq((env), (env)->type_of((env), (val)), (env)->intern((env), "string"))
 
 #define WARN(env, ...) message(env, SQLITE3_LOG_LEVEL_WARN, __VA_ARGS__)
 #define DEBUG(env, ...) message(env, SQLITE3_LOG_LEVEL_DEBUG, __VA_ARGS__)
