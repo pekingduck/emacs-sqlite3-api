@@ -36,7 +36,7 @@
 
 (cl-eval-when (load eval)
   (unless (require 'sqlite3-api nil t)
-    (if (yes-or-no-p "sqlite3-api module must be build.  Do so now? ")
+    (if (yes-or-no-p "sqlite3-api module must be built.  Do so now? ")
         (let ((default-directory (file-name-directory (or load-file-name
                                                           buffer-file-name))))
           (with-temp-buffer
