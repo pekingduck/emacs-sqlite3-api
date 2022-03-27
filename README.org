@@ -43,10 +43,12 @@
 - [[#sqlite3-api-for-emacs-25][SQLite3 API for Emacs 25+]]
   - [[#introduction][Introduction]]
   - [[#requirements][Requirements]]
-  - [[#installation][Installation]]
+  - [[#installation--removal][Installation & Removal]]
     - [[#melpa][Melpa]]
-    - [[#local-package][Local Package]]
-    - [[#manual][Manual]]
+    - [[#elpa][Elpa]]
+    - [[#manual-installation][Manual Installation]]
+    - [[#removal][Removal]]
+    - [[#note-on-package-update][Note on Package Update]]
   - [[#api][API]]
     - [[#sqlite3-open][sqlite3-open]]
     - [[#sqlite3-close][sqlite3-close]]
@@ -81,9 +83,9 @@
 - A C99 compiler
 
 It's been tested on macOS (Catalina) and CentOS 7.
-** Installation
+** Installation & Removal
 *** Melpa
-You can now install the package via Melpa (package name: ~sqlite3~).
+The package is available on [[https://melpa.org/#/sqlite3][Melpa]] (thanks to @tarsius).
 
 The first time you ~(require 'sqlite3)~, you will be asked to confirm the
 compilation of the dynamic module:
@@ -95,9 +97,7 @@ sqlite3-api module must be build.  Do so now?
 After the module is successfully compiled, you should ~(unload-feature
 'sqlite3)~ and then ~(require sqlite3)~ to reload properly.
 
-You can ~(eval sqlite-ok)~ to test the installation. You should get a 0.
-
-*** Local Package
+*** Elpa
 #+BEGIN_SRC sh :eval no :exports code
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
@@ -118,26 +118,32 @@ If you have sqlite3 installed in a nonstandard location:
 $ make INC=/path/to/sqlite3/include LIB="-L/path/to/sqlite3/lib -lsqlite3"
 #+END_SRC
 
-Currently there's no way to reload a dynamic module in Emacs
-(~unload-feature~ doesn't seem to work for dynamic modules.)
-If you are updating from an older version, you'll need to restart Emacs
-for the new module to take effect.
-
-2020-09-16 Update: I can't find it in ~etc/NEWS~, but it seems Emacs 27.1
-supports unloading of dynamic modules. To unload ~sqlite3~ properly:
-
-#+BEGIN_SRC emacs-lisp :eval no :exports code
-(unload-feature 'sqlite3)
-(unload-feature 'sqlite3-api)
-#+END_SRC
-
-*** Manual
+*** Manual Installation
 #+BEGIN_SRC sh :eval no :exports code
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
 $ cd emacs-sqlite3-api
 $ make
 $ cp sqlite3.el sqlite3-api.so /your/elisp/load-path/
 #+END_SRC
+
+*** Removal
+If you installed manually, just remove ~sqlite3.el~ and ~sqlite3-api.so~ from
+your load path. Otherwise, do ~M-x package-delete~ to remove the sqlite3
+package.
+
+*** Note on Package Update
+Emacs 25 and 26: If you are updating from an older version, you'll need to
+restart Emacs for the new module to take effect. That's because ~unload-feature~
+doesn't work for dynamic modules.
+
+Emacs 27.1: I can't find it in [[https://github.com/emacs-mirror/emacs/blob/emacs-27.1/etc/NEWS][~etc/NEWS~]], but it seems Emacs 27.1
+does support unloading of dynamic modules. To unload ~sqlite3~ properly:
+
+#+BEGIN_SRC emacs-lisp :eval no :exports code
+(unload-feature 'sqlite3)
+(unload-feature 'sqlite3-api)
+#+END_SRC
+
 
 ** API
 To load the package, put the following in your ~.emacs~:
@@ -372,7 +378,7 @@ Currently two error symbols are defined in ~sqlite3.el~:
 corresponding SQLite
 C API.
 
-** A Note on Garbage Collection
+** Note on Garbage Collection
 Since Emacs's garbage collection is non-deterministic, it would be 
 a good idea 
 to manually free database/statement handles once they are not needed.
