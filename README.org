@@ -91,7 +91,7 @@ The first time you ~(require 'sqlite3)~, you will be asked to confirm the
 compilation of the dynamic module:
 
 #+BEGIN_SRC text :eval no :exports code
-sqlite3-api module must be build.  Do so now?
+sqlite3-api module must be built.  Do so now?
 #+END_SRC
 
 After the module is successfully compiled, you should ~(unload-feature
