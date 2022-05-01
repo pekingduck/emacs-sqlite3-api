@@ -28,7 +28,7 @@
  While this module provides only 14 functions (vs [[https://sqlite.org/c3ref/funclist.html][200+ in the C API]]), it should satisfy most
  users' needs.
 
- The current version is v0.15.
+ The current version is v0.16.
 
  This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
@@ -394,8 +394,11 @@ The code is licensed under the [[https://www.gnu.org/licenses/gpl-3.0.html][GNU 
 ** Contributors
 - [[https://github.com/tarsius][Jonas Bernoulli]] - Melpa package
 ** Changelog
+*v0.16 - 2022-05-01*
+- Fixed a bug in ~sqlite3-bind-multi~ 
+  
 *v0.15 - 2020-09-16*
-- Fixed a bug in ~sqlite3-bind-multi~  under Emacs 27.1
+- Fixed a bug in ~sqlite3-bind-multi~ under Emacs 27.1
 
 *v0.14 - 2020-07-08*
 - Added sqlite3.el (melpa)
