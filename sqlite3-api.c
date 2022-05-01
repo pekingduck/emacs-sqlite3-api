@@ -33,6 +33,8 @@ int plugin_is_GPL_compatible;
   (env)->eq((env), (env)->type_of((env), (val)), (env)->intern((env), "float"))
 #define IS_STRING(env, val) \
   (env)->eq((env), (env)->type_of((env), (val)), (env)->intern((env), "string"))
+#define IS_NIL(env, val) \
+  (env)->eq((env), (val), (env)->intern((env), "nil"))
 
 #define WARN(env, ...) message(env, SQLITE3_LOG_LEVEL_WARN, __VA_ARGS__)
 #define DEBUG(env, ...) message(env, SQLITE3_LOG_LEVEL_DEBUG, __VA_ARGS__)
@@ -355,7 +357,7 @@ static emacs_value sqlite3_api_bind_multi(
       rv = sqlite3_bind_text(stmt, i, txt, -1, SQLITE_TRANSIENT);
       FREE(txt);
       NON_LOCAL_EXIT_CHECK(env);
-    } else if (args[i] == SYM(env, "nil")) {
+    } else if (IS_NIL(env, args[i])) {
       rv = sqlite3_bind_null(stmt, i);
       NON_LOCAL_EXIT_CHECK(env);
     } else {
