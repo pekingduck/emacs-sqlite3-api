@@ -35,6 +35,34 @@ int plugin_is_GPL_compatible;
   (env)->eq((env), (env)->type_of((env), (val)), (env)->intern((env), "string"))
 #define IS_NIL(env, val) \
   (env)->eq((env), (val), (env)->intern((env), "nil"))
+#define NIL(env) (env)->intern((env), "nil")
+
+#define RETURN_NIL_ON_NIL(env, stmt) \
+  if (!(env)->is_not_nil((env), (stmt))) {		\
+    WARN(env, "%s: handle is nil", __func__); \
+    return SYM((env), "nil");				\
+  }
+
+#define MAKE_INT(env, i) \
+  (env)->make_integer((env), (i))
+
+#define MAKE_FLOAT(env, fl) \
+  (env)->make_float((env), (fl))
+
+#define MAKE_STR(env, s) \
+  (env)->make_string((env), (s), strlen(s))
+
+/* Equivalent to (list a b c) in elisp
+   len is the length of the list
+   elts, an array of emacs_value, are the elements
+ */
+
+#define MAKE_LIST(env, len, elts) \
+  (env)->funcall((env), SYM((env), "list"), (len), (elts))
+
+/* (cons a b) */
+#define MAKE_CONS(env, elts) \
+  (env)->funcall((env), SYM((env), "cons"), 2, (elts))
 
 #define WARN(env, ...) message(env, SQLITE3_LOG_LEVEL_WARN, __VA_ARGS__)
 #define DEBUG(env, ...) message(env, SQLITE3_LOG_LEVEL_DEBUG, __VA_ARGS__)
@@ -50,58 +78,6 @@ static int SQLITE3_LOG_LEVEL_INFO = 1;
 static int SQLITE3_LOG_LEVEL_WARN = 2;
 static int SQLITE3_LOG_LEVEL_ERROR = 3;
 static int sqlite3_api_log_level;
-
-#if 0
-static int symbol_value_as_int(emacs_env *env,
-                               emacs_value sym,
-                               int deft) {
-  emacs_value v = env->funcall(env, SYM(env, "symbol-value"), 1, &sym);
-  if (IS_INTEGER(env, v))
-    return env->extract_integer(env, v);
-  return deft;
-}
-#endif
-
-/* Equivalent to (list a b c) in elisp
-   n is the number of arguments
-   elts, an array of emacs_valuem, are elements of the list
- */
-static emacs_value make_list(emacs_env *env, int n, emacs_value *elts) {
-  return env->funcall(env, SYM(env, "list"), n, elts);
-}
-
-static emacs_value make_cons(emacs_env *env, emacs_value *elts) {
-  return env->funcall(env, SYM(env, "cons"), 2, elts);
-}
-
-#if 0
-static void message(emacs_env *env, int log_level, const char *fmt, ...) {
-  if (log_level < sqlite3_api_log_level)
-    return;
-
-  va_list args;
-  static char log_buf[SQLITE3_MAX_LOG_BUF];
-
-  va_start(args, fmt);
-  vsnprintf(log_buf, SQLITE3_MAX_LOG_BUF, fmt, args);
-  va_end(args);
-
-  static const char *LOG_LEVEL_DESC[] = {
-    "DEBUG",
-    "INFO",
-    "WARN",
-    "ERROR"
-  };
-
-  static char new_log_buf[SQLITE3_MAX_LOG_BUF];
-  snprintf(new_log_buf, SQLITE3_MAX_LOG_BUF, "[%s] %s",
-           LOG_LEVEL_DESC[log_level], log_buf);
-  emacs_value msg_func = SYM(env, "message");
-  emacs_value arg = env->make_string(env, new_log_buf,
-                                     strlen(new_log_buf));
-  env->funcall(env, msg_func, 1, &arg);
-}
-#endif
 
 /* Logging function */
 static void message(emacs_env *env, int log_level, const char *fmt, ...) {
@@ -135,14 +111,14 @@ void signal_error(
     int code) {
   emacs_value signal = SYM(env, symbol);
   emacs_value argv[2] = {
-    env->make_string(env, msg, strlen(msg)),
-    env->make_integer(env, code)
+    MAKE_STR(env, msg),
+    MAKE_INT(env, code)
   };
 
   env->non_local_exit_signal(
       env,
       signal,
-      make_list(env, 2, argv));
+      MAKE_LIST(env, 2, argv));
 }
 
 /* Extract and copy string contents from function parameters */
@@ -207,10 +183,7 @@ static emacs_value sqlite3_api_bind_null(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -219,7 +192,7 @@ static emacs_value sqlite3_api_bind_null(
   int col = env->extract_integer(env, args[1]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, sqlite3_bind_null(stmt, col));
+  return MAKE_INT(env, sqlite3_bind_null(stmt, col));
 }
 
 static emacs_value sqlite3_api_bind_double(
@@ -230,10 +203,7 @@ static emacs_value sqlite3_api_bind_double(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -245,7 +215,7 @@ static emacs_value sqlite3_api_bind_double(
   double val = env->extract_float(env, args[2]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, sqlite3_bind_double(stmt, col, val));
+  return MAKE_INT(env, sqlite3_bind_double(stmt, col, val));
 }
 
 static emacs_value sqlite3_api_bind_parameter_count(
@@ -256,15 +226,12 @@ static emacs_value sqlite3_api_bind_parameter_count(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, sqlite3_bind_parameter_count(stmt));
+  return MAKE_INT(env, sqlite3_bind_parameter_count(stmt));
 }
 
 static emacs_value sqlite3_api_bind_int64(
@@ -275,10 +242,7 @@ static emacs_value sqlite3_api_bind_int64(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -291,7 +255,7 @@ static emacs_value sqlite3_api_bind_int64(
   intmax_t val = env->extract_integer(env, args[2]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, sqlite3_bind_int64(stmt, col, val));
+  return MAKE_INT(env, sqlite3_bind_int64(stmt, col, val));
 }
 
 static emacs_value sqlite3_api_bind_text(
@@ -302,10 +266,7 @@ static emacs_value sqlite3_api_bind_text(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -316,13 +277,13 @@ static emacs_value sqlite3_api_bind_text(
 
   char *txt;
   if (extract_string_arg(env, args[2], &txt)) {
-    return SYM(env, "nil");
+    return NIL(env);
   }
 
   DEBUG(env, "%s: [%s] to col %d", __func__, txt, col);
   int rv = sqlite3_bind_text(stmt, col, txt, -1, SQLITE_TRANSIENT);
   FREE(txt);
-  return env->make_integer(env, rv);
+  return MAKE_INT(env, rv);
 }
 
 static emacs_value sqlite3_api_bind_multi(
@@ -333,10 +294,7 @@ static emacs_value sqlite3_api_bind_multi(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -371,7 +329,7 @@ static emacs_value sqlite3_api_bind_multi(
     }
   }
 
-  return env->make_integer(env, rv);
+  return MAKE_INT(env, rv);
 }
 
 static emacs_value sqlite3_api_column_name(
@@ -382,10 +340,7 @@ static emacs_value sqlite3_api_column_name(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -395,7 +350,7 @@ static emacs_value sqlite3_api_column_name(
   NON_LOCAL_EXIT_CHECK(env);
 
   const char *name = sqlite3_column_name(stmt, col);
-  return env->make_string(env, name, strlen(name));
+  return MAKE_STR(env, name);
 }
 
 static emacs_value sqlite3_api_column_text(
@@ -406,10 +361,7 @@ static emacs_value sqlite3_api_column_text(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -418,10 +370,10 @@ static emacs_value sqlite3_api_column_text(
   int col = env->extract_integer(env, args[1]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  int size = sqlite3_column_bytes(stmt, col);
   return env->make_string(env,
                           (const char *)sqlite3_column_text(stmt, col),
-                          size);
+			  sqlite3_column_bytes(stmt, col));
+
 }
 
 static emacs_value sqlite3_api_column_int64(
@@ -432,10 +384,7 @@ static emacs_value sqlite3_api_column_int64(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -444,7 +393,7 @@ static emacs_value sqlite3_api_column_int64(
   int col = env->extract_integer(env, args[1]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, (intmax_t)sqlite3_column_int64(stmt, col));
+  return MAKE_INT(env, (intmax_t)sqlite3_column_int64(stmt, col));
 }
 
 static emacs_value sqlite3_api_column_double(
@@ -455,10 +404,7 @@ static emacs_value sqlite3_api_column_double(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -467,7 +413,7 @@ static emacs_value sqlite3_api_column_double(
   int col = env->extract_integer(env, args[1]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_float(env, sqlite3_column_double(stmt, col));
+  return MAKE_FLOAT(env, sqlite3_column_double(stmt, col));
 }
 
 static emacs_value sqlite3_api_column_type(
@@ -478,10 +424,7 @@ static emacs_value sqlite3_api_column_type(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -490,7 +433,7 @@ static emacs_value sqlite3_api_column_type(
   int col = env->extract_integer(env, args[1]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, sqlite3_column_type(stmt, col));
+  return MAKE_INT(env, sqlite3_column_type(stmt, col));
 }
 
 static emacs_value sqlite3_api_changes(
@@ -501,15 +444,12 @@ static emacs_value sqlite3_api_changes(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: database handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3 *dbh = (sqlite3 *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, sqlite3_changes(dbh));
+  return MAKE_INT(env, sqlite3_changes(dbh));
 }
 
 static emacs_value sqlite3_api_step(
@@ -520,15 +460,12 @@ static emacs_value sqlite3_api_step(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env)
 
-  return env->make_integer(env, sqlite3_step(stmt));
+  return MAKE_INT(env, sqlite3_step(stmt));
 }
 
 static emacs_value sqlite3_api_reset(
@@ -539,16 +476,13 @@ static emacs_value sqlite3_api_reset(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   // Exrtract sqlite3 db struct
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, sqlite3_reset(stmt));
+  return MAKE_INT(env, sqlite3_reset(stmt));
 }
 
 static emacs_value sqlite3_api_column_count(
@@ -559,15 +493,12 @@ static emacs_value sqlite3_api_column_count(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, sqlite3_column_count(stmt));
+  return MAKE_INT(env, sqlite3_column_count(stmt));
 }
 
 static emacs_value sqlite3_api_fetch_alist(
@@ -578,10 +509,7 @@ static emacs_value sqlite3_api_fetch_alist(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -594,14 +522,14 @@ static emacs_value sqlite3_api_fetch_alist(
     emacs_value cons[2];
     const char *col_name = sqlite3_column_name(stmt, i);
 
-    cons[0] = env->make_string(env, col_name, strlen(col_name));
+    cons[0] = MAKE_STR(env, col_name);
 
     switch(sqlite3_column_type(stmt, i)) {
       case SQLITE_INTEGER:
-        cons[1] = env->make_integer(env, sqlite3_column_int64(stmt, i));
+        cons[1] = MAKE_INT(env, sqlite3_column_int64(stmt, i));
         break;
       case SQLITE_FLOAT:
-        cons[1] = env->make_float(env, sqlite3_column_double(stmt, i));
+        cons[1] = MAKE_FLOAT(env, sqlite3_column_double(stmt, i));
         break;
       case SQLITE_TEXT:
         cons[1] = env->make_string(
@@ -610,12 +538,12 @@ static emacs_value sqlite3_api_fetch_alist(
             sqlite3_column_bytes(stmt, i));
         break;
       default:
-        cons[1] = SYM(env, "nil");
+        cons[1] = NIL(env);
     }
-    elts[i] = make_cons(env, cons);
+    elts[i] = MAKE_CONS(env, cons);
   }
 
-  emacs_value res = make_list(env, ncols, elts);
+  emacs_value res = MAKE_LIST(env, ncols, elts);
   FREE(elts);
   return res;
 }
@@ -628,10 +556,7 @@ static emacs_value sqlite3_api_fetch(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: statement handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -642,10 +567,10 @@ static emacs_value sqlite3_api_fetch(
   for (int i = 0; i < ncols; i++) {
     switch(sqlite3_column_type(stmt, i)) {
       case SQLITE_INTEGER:
-        elts[i] = env->make_integer(env, sqlite3_column_int64(stmt, i));
+        elts[i] = MAKE_INT(env, sqlite3_column_int64(stmt, i));
         break;
       case SQLITE_FLOAT:
-        elts[i] = env->make_float(env, sqlite3_column_double(stmt, i));
+        elts[i] = MAKE_FLOAT(env, sqlite3_column_double(stmt, i));
         break;
       case SQLITE_TEXT:
         elts[i] = env->make_string(
@@ -654,11 +579,11 @@ static emacs_value sqlite3_api_fetch(
             sqlite3_column_bytes(stmt, i));
         break;
       default:
-        elts[i] = SYM(env, "nil");
+        elts[i] = NIL(env);
     }
   }
 
-  emacs_value res = make_list(env, ncols, elts);
+  emacs_value res = MAKE_LIST(env, ncols, elts);
   FREE(elts);
   return res;
 }
@@ -671,10 +596,7 @@ static emacs_value sqlite3_api_prepare(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: database handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3 *dbh = (sqlite3 *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -682,7 +604,7 @@ static emacs_value sqlite3_api_prepare(
   // SQL statement to be prepared
   char *sql_txt;
   if (extract_string_arg(env, args[1], &sql_txt)) {
-    return SYM(env, "nil");
+    return NIL(env);
   }
 
   // Prepare
@@ -694,7 +616,7 @@ static emacs_value sqlite3_api_prepare(
   FREE(sql_txt);
   if (rv != SQLITE_OK) {
     signal_error(env, "sql-error", "sqlite3_prepare_v2() failed", rv);
-    return SYM(env, "nil");
+    return NIL(env);
   }
   return env->make_user_ptr(env, sqlite3_stmt_gc, stmt);
 }
@@ -708,14 +630,13 @@ static emacs_value sqlite3_api_get_autocommit(
   (void)n;
 
   /* User passed a nil stmt */
-  if (!env->is_not_nil(env, args[0]))
-    return SYM(env, "nil");
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3 *dbh = (sqlite3 *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
 
   INFO(env, "%s: entered", __func__);
-  return env->make_integer(env, sqlite3_get_autocommit(dbh));
+  return MAKE_INT(env, sqlite3_get_autocommit(dbh));
 }
 
 /* Small struct for passing data from sqlite3_exec() to exec_callback() */
@@ -744,24 +665,22 @@ static int exec_callback(void *data, int ncols,
 
   for (int i = 0; i < ncols; i++) {
     if (col_data[i])
-      data_args[i] = env->make_string(env, col_data[i],
-                                      strlen(col_data[i]));
+      data_args[i] = MAKE_STR(env, col_data[i]);
     else
-      data_args[i] = SYM(env, "nil");
+      data_args[i] = NIL(env);
     NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
 
-    col_args[i] = env->make_string(env, col_names[i],
-                                   strlen(col_names[i]));
+    col_args[i] = MAKE_STR(env, col_names[i]);
     NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
   }
 
   /* equivalent to (list "a" "b" "c" ....) */
   emacs_value args[3];
-  args[0] = env->make_integer(env, ncols);
+  args[0] = MAKE_INT(env, ncols);
   NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
-  args[1] = make_list(env, ncols, data_args);
+  args[1] = MAKE_LIST(env, ncols, data_args);
   NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
-  args[2] = make_list(env, ncols, col_args);
+  args[2] = MAKE_LIST(env, ncols, col_args);
   NON_LOCAL_EXIT_CHECK_AND_CLEANUP;
 
   emacs_value v = env->funcall(env, fe->callback, 3, args);
@@ -781,8 +700,7 @@ static emacs_value sqlite3_api_exec(
   (void)ptr;
 
   /* User passed a nil dbh */
-  if (!env->is_not_nil(env, args[0]))
-    return SYM(env, "nil");
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3 *dbh = (sqlite3 *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -790,7 +708,7 @@ static emacs_value sqlite3_api_exec(
   char *sql_txt;
   if (extract_string_arg(env, args[1], &sql_txt)) {
       FREE(sql_txt);
-    return SYM(env, "nil");
+      return NIL(env);
   }
 
   char *errmsg = 0;
@@ -807,10 +725,10 @@ static emacs_value sqlite3_api_exec(
     signal_error(env, "db-error", errmsg, rv);
     if (errmsg)
       sqlite3_free(errmsg);
-    return SYM(env, "nil");
+    return NIL(env);
   }
 
-  return env->make_integer(env, rv);
+  return MAKE_INT(env, rv);
 }
 
 
@@ -826,7 +744,6 @@ static emacs_value sqlite3_api_finalize(
   for (int i = 0; i < n; i++) {
     /* User passed a nil stmt */
     if (!env->is_not_nil(env, args[i]))
-      /* return SYM(env, "nil"); */
       continue;
 
     sqlite3_stmt *stmt = (sqlite3_stmt *)env->get_user_ptr(env, args[i]);
@@ -837,7 +754,7 @@ static emacs_value sqlite3_api_finalize(
     DEBUG(env, "%s: #%d finalized", __func__, i);
   }
 
-  return SYM(env, "nil");
+  return NIL(env);
 }
 
 
@@ -850,8 +767,7 @@ static emacs_value sqlite3_api_close(
   (void)n;
 
   /* nil database handle */
-  if (!env->is_not_nil(env, args[0]))
-    return SYM(env, "nil");
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3 *dbh = (sqlite3 *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
@@ -859,7 +775,7 @@ static emacs_value sqlite3_api_close(
   INFO(env, "%s: entered", __func__);
   sqlite3_close_v2(dbh);
   env->set_user_ptr(env, args[0], 0);
-  return SYM(env, "nil");
+  return NIL(env);
 }
 
 static emacs_value sqlite3_api_last_insert_rowid(
@@ -870,44 +786,14 @@ static emacs_value sqlite3_api_last_insert_rowid(
   (void)ptr;
   (void)n;
 
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: database handle is nil", __func__);
-    return SYM(env, "nil");
-  }
+  RETURN_NIL_ON_NIL(env, args[0]);
 
   sqlite3 *dbh = (sqlite3 *)env->get_user_ptr(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
 
-  return env->make_integer(env, (intmax_t)sqlite3_last_insert_rowid(dbh));
+  return MAKE_INT(env, (intmax_t)sqlite3_last_insert_rowid(dbh));
 }
 
-
-#if 0
-/* sqlite version >= 3.18 only */
-static emacs_value sqlite3_api_set_last_insert_rowid(
-    emacs_env *env,
-    ptrdiff_t n,
-    emacs_value *args,
-    void *ptr) {
-  (void)ptr;
-  (void)n;
-
-  if (!env->is_not_nil(env, args[0])) {
-    WARN(env, "%s: database handle is nil", __func__);
-    return SYM(env, "nil");
-  }
-
-  sqlite3 *dbh = (sqlite3 *)env->get_user_ptr(env, args[0]);
-  NON_LOCAL_EXIT_CHECK(env);
-
-  sqlite3_int64 rowid = env->extract_integer(env, args[1]);
-  NON_LOCAL_EXIT_CHECK(env);
-
-  sqlite3_set_last_insert_rowid(dbh, rowid);
-
-  return SYM(env, "nil");
-}
-#endif
 
 static emacs_value sqlite3_api_set_log_level(
     emacs_env *env,
@@ -920,7 +806,7 @@ static emacs_value sqlite3_api_set_log_level(
   int log_level = env->extract_integer(env, args[0]);
   NON_LOCAL_EXIT_CHECK(env);
   sqlite3_api_log_level = log_level;
-  return SYM(env, "nil");
+  return NIL(env);
 }
 
 #if 0
@@ -933,8 +819,8 @@ static emacs_value sqlite3_api_test(
   (void)n;
 
   emacs_value *fargs = malloc(sizeof(emacs_value)*2);
-  fargs[0] = env->make_integer(env, 1);
-  fargs[1] = env->make_integer(env, 99);
+  fargs[0] = MAKE_INT(env, 1);
+  fargs[1] = MAKE_INT(env, 99);
   return env->funcall(env, args[0], 2, fargs);
 }
 #endif
@@ -950,7 +836,7 @@ static emacs_value sqlite3_api_open(
   // Filename
   char *db_file = 0;
   if (extract_string_arg(env, args[0], &db_file)) {
-    return SYM(env, "nil");
+    return NIL(env);
   }
 
   // FLAGS
@@ -969,7 +855,7 @@ static emacs_value sqlite3_api_open(
     if (dbh)
       sqlite3_free(dbh);
     signal_error(env, "db-error", "sqlite_open_v2() failed", rv);
-    return SYM(env, "nil");
+    return NIL(env);
   }
 
   return env->make_user_ptr(env, sqlite3_dbh_gc, dbh);
@@ -982,7 +868,7 @@ static void define_error(
     const char *err_desc) {
   emacs_value argv[] = {
     SYM(env, err_sym),
-    env->make_string(env, err_desc, strlen(err_desc))
+    MAKE_STR(env, err_desc)
   };
   env->funcall(env, SYM(env, "define-error"), 2, argv);
 }
@@ -1000,7 +886,7 @@ static void defconst(emacs_env *env, const char *sym, emacs_value val) {
     SYM(env, sym),
     val
   };
-  emacs_value form = make_list(env, 3, list_argv);
+  emacs_value form = MAKE_LIST(env, 3, list_argv);
   emacs_value eval_argv[] = { form, SYM(env, "t") };
   env->funcall(env, SYM(env, "eval"), 2, eval_argv);
 }
