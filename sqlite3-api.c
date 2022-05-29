@@ -809,22 +809,6 @@ static emacs_value sqlite3_api_set_log_level(
   return NIL(env);
 }
 
-#if 0
-static emacs_value sqlite3_api_test(
-    emacs_env *env,
-    ptrdiff_t n,
-    emacs_value *args,
-    void *ptr) {
-  (void)ptr;
-  (void)n;
-
-  emacs_value *fargs = malloc(sizeof(emacs_value)*2);
-  fargs[0] = MAKE_INT(env, 1);
-  fargs[1] = MAKE_INT(env, 99);
-  return env->funcall(env, args[0], 2, fargs);
-}
-#endif
-
 static emacs_value sqlite3_api_open(
     emacs_env *env,
     ptrdiff_t n,
@@ -922,11 +906,6 @@ int emacs_module_init(struct emacs_runtime *ert) {
         "Reset a prepared SQL statement." },
       { "sqlite3-last-insert-rowid", 1, 1, sqlite3_api_last_insert_rowid,
         "Return last insert rowid." },
-#if 0
-      { "sqlite3-set-last-insert-rowid", 2, 2,
-        sqlite3_api_set_last_insert_rowid,
-        "Set last insert rowid." },
-#endif
       { "sqlite3-get-autocommit", 1, 1, sqlite3_api_get_autocommit,
         "Test for auto-commit mode." },
       { "sqlite3-exec", 2, 3, sqlite3_api_exec,
