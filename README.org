@@ -393,6 +393,9 @@ The code is licensed under the [[https://www.gnu.org/licenses/gpl-3.0.html][GNU 
 
 ** Contributors
 - [[https://github.com/tarsius][Jonas Bernoulli]] - Melpa package
+- @reflektoin
+- @yasuhirokimura
+  
 ** Changelog
 *v0.16 - 2022-05-01*
 - Fixed a bug in ~sqlite3-bind-multi~ 
