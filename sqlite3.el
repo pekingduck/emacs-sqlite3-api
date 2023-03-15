@@ -1,11 +1,11 @@
 ;;; sqlite3.el --- Direct access to the core SQLite3 API  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2020  Y. N. Lo
+;; Copyright (C) 2018-2023  Y. N. Lo
 
-;; Author: Y. N. Lo <gordonynlo@yahoo.com>
+;; Author: Y. N. Lo <elisp@fastmail.com>
 ;; Homepage: https://github.com/pekingduck/emacs-sqlite3-api
 ;; Keywords: comm, data, sql
-
+;; Version: 0.17
 ;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is not part of GNU Emacs.

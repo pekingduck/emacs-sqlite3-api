@@ -28,7 +28,7 @@
  While this module provides only 14 functions (vs [[https://sqlite.org/c3ref/funclist.html][200+ in the C API]]), it should satisfy most
  users' needs.
 
- The current version is v0.16.
+ The current version is v0.17.
 
  This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
