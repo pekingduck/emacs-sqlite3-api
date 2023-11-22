@@ -32,7 +32,12 @@
 
 (require 'cl-lib)
 
-(defvar sqlite3-api-build-command '("make" "all"))
+(defvar sqlite3-api-build-command (or (getenv "SQLITE3_API_BUILD_COMMAND")
+                                      "make all")
+  "String containing the build command for the sqlite3-api module.
+
+It defaults to \"make all\".  It can be overriden by
+setting the SQLITE3_API_BUILD_COMMAND environment variable.")
 
 (cl-eval-when (load eval)
   (unless (require 'sqlite3-api nil t)
@@ -40,13 +45,12 @@
             (yes-or-no-p "sqlite3-api module must be built.  Do so now? "))
         (let ((default-directory (file-name-directory (or load-file-name
                                                           buffer-file-name))))
-          (message "Building sqlite3-api module...")
+          (message "Building sqlite3-api module with %S" sqlite3-api-build-command)
           (with-temp-buffer
-            (unless (zerop (apply #'call-process
-                                  (car sqlite3-api-build-command) nil t t
-                                  (cdr sqlite3-api-build-command)))
+            (unless (zerop (call-process-shell-command
+                            sqlite3-api-build-command nil t t))
               (error "Failed to compile module using: %s: %s"
-                     (mapconcat #'identity sqlite3-api-build-command " ")
+                     sqlite3-api-build-command
                      (buffer-substring-no-properties
                       (point-min)
                       (point-max)))))

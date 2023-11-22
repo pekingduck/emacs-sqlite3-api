@@ -1,7 +1,12 @@
 *.o
 *.so
+*.dll
 **/.DS_Store
 sqlite3-napi-module-with-create-function.c
 xxx.el
 **/sqlite3-api-*
-**/sqlite3-*
+
+*~
+**/sqlite3-*# Added automatically by `eldev init'.
+/.eldev
+/Eldev-local

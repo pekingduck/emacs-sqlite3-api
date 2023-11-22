@@ -1,0 +1,6 @@
+; -*- mode: emacs-lisp; lexical-binding: t -*-
+
+(setf eldev-project-source-dirs ".")
+(setf eldev-files-to-package
+      `(:or ,eldev-files-to-package
+                  '("./Makefile" "./consts.c" "./emacs-module.h" "./sqlite3-api.c")))

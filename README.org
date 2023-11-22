@@ -49,6 +49,7 @@
     - [[#manual-installation][Manual Installation]]
     - [[#removal][Removal]]
     - [[#note-on-package-update][Note on Package Update]]
+  - [[#testing][Testing]]
   - [[#api][API]]
     - [[#sqlite3-open][sqlite3-open]]
     - [[#sqlite3-close][sqlite3-close]]
@@ -67,7 +68,7 @@
     - [[#sqlite3-fetch-alist][sqlite3-fetch-alist]]
   - [[#transaction-support][Transaction Support]]
   - [[#error-handling][Error Handling]]
-  - [[#a-note-on-garbage-collection][A Note on Garbage Collection]]
+  - [[#note-on-garbage-collection][Note on Garbage Collection]]
   - [[#known-problems][Known Problems]]
   - [[#license][License]]
   - [[#contributors][Contributors]]
@@ -82,7 +83,8 @@
 - SQLite3 v3.16.0 or above. Older versions might work but I have not personally tested those.
 - A C99 compiler
 
-It's been tested on macOS (Catalina) and CentOS 7.
+It's been tested on macOS (Catalina), CentOS 7 and MS-Windows 11.
+
 ** Installation & Removal
 *** Melpa
 The package is available on [[https://melpa.org/#/sqlite3][Melpa]] (thanks to @tarsius).
@@ -93,6 +95,8 @@ compilation of the dynamic module:
 #+BEGIN_SRC text :eval no :exports code
 sqlite3-api module must be built.  Do so now?
 #+END_SRC
+
+The module is built using the `make all` command by default. To customize the build process, you can override this behavior by setting the `SQLITE3_API_BUILD_COMMAND` environment variable.
 
 *** Elpa
 #+BEGIN_SRC sh :eval no :exports code
@@ -141,6 +145,18 @@ does support unloading of dynamic modules. To unload ~sqlite3~ properly:
 (unload-feature 'sqlite3-api)
 #+END_SRC
 
+** Testing
+
+The tests can be run with the [[https://github.com/emacs-eldev/eldev][Eldev]] build tool
+
+#+BEGIN_SRC sh :eval no :exports code
+  # from source
+  eldev test
+  # or as a compiled package
+  eldev -p test
+#+END_SRC
+
+See [[https://emacs-eldev.github.io/eldev/][Eldev documentation]] for more information.
 
 ** API
 To load the package, put the following in your ~.emacs~:
