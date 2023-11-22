@@ -94,9 +94,6 @@ compilation of the dynamic module:
 sqlite3-api module must be built.  Do so now?
 #+END_SRC
 
-After the module is successfully compiled, you should ~(unload-feature
-'sqlite3)~ and then ~(require sqlite3)~ to reload properly.
-
 *** Elpa
 #+BEGIN_SRC sh :eval no :exports code
 $ git co https://github.com/pekingduck/emacs-sqlite3-api
