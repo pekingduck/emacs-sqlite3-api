@@ -14,18 +14,19 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ;;
 
-(require 'sqlite3-api)
+(require 'sqlite3)
 (require 'cl)
 
 
 (ert-deftest sqlite3-test-consts ()
   (message "Tests:consts")
-  (progn
+  (let ((vl (version-to-list sqlite-version)))
     ;; should pass the test
     (should (boundp 'sqlite-ok))
-    ;; older versions (3.28) doesn't have it defined
-    (should-not (boundp 'sqlite-ioerr-data))
-    ))
+    (if (version-list-<= vl '(3 28))
+        ;; older versions (3.28) doesn't have it defined
+        (should-not (boundp 'sqlite-ioerr-data))
+      (should (boundp 'sqlite-ioerr-data)))))
 
 (sqlite3-set-log-level 3)
 (ert "^sqlite3-test")
