@@ -28,7 +28,7 @@
  While this module provides only 14 functions (vs [[https://sqlite.org/c3ref/funclist.html][200+ in the C API]]), it should satisfy most
  users' needs.
 
- The current version is v0.17.
+ The current version is v0.18.
 
  This is an alpha release so it might crash your Emacs. Save your work before you try it out!
 
@@ -408,8 +408,16 @@ The code is licensed under the [[https://www.gnu.org/licenses/gpl-3.0.html][GNU 
 - [[https://github.com/tarsius][Jonas Bernoulli]] - Melpa package
 - @reflektoin
 - @yasuhirokimura
+- @ikappaki - added GitHub CI Actions (0aa2b03)
   
 ** Changelog
+*v0.18 - 2023-11-24*
+- Module is now loaded after compilation.
+- GitHub CI Actions added
+
+*v0.17 - 2023-03-15*
+- Added 28.2 to regression tests
+  
 *v0.16 - 2022-05-01*
 - Fixed a bug in ~sqlite3-bind-multi~ 
   
